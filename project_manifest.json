@@ -1,0 +1,22 @@
+{
+  "name": "EduPath-AI",
+  "version": "0.1.0",
+  "description": "Autonomous multi-agent course and training curriculum generator",
+  "source_basis": "EduPath-AI Team Brief",
+  "agents": [
+    "Curriculum Architect",
+    "Content Creator",
+    "Assessment Agent",
+    "Quality & Validation Agent"
+  ],
+  "providers": [
+    "mock",
+    "gemini"
+  ],
+  "exports": [
+    "PDF",
+    "JSON",
+    "Markdown",
+    "ZIP"
+  ]
+}
