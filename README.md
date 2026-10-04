@@ -2,7 +2,7 @@
 
 ## Autonomous Multi-Agent Course & Training Curriculum Generator
 
-EduPath-AI transforms a simple learning request into a structured, validated and downloadable course package using specialized agents.
+EduPath-AI basically transforms a simple learning request into a structured, validated and downloadable course package using specialized agents.
 
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue) ![Streamlit](https://img.shields.io/badge/UI-Streamlit-red) ![License](https://img.shields.io/badge/license-see%20LICENSE-green)
 
