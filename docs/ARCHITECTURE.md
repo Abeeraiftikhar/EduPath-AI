@@ -62,3 +62,16 @@ the loop can be shown live.
 - `core/exporter.py` - Markdown, PDF and ZIP builders (built once per course and cached in the session).
 - `core/utils.py` - duration parsing and MCQ answer helpers.
 - `app.py` - presentation layer.
+
+## Interface layer (`app.py`, `ui/`, `assets/`)
+
+- **Design system:** tokens (colour, radius, shadow, motion easing) live in `assets/theme.css`; `assets/theme_dark.css`
+  only overrides the tokens, so every component themes automatically. Dark is the default.
+- **Icons:** `st.html` strips inline `<svg>`, so Lucide-style icons are generated as CSS masks
+  (`python ui/make_icons.py` writes `assets/icons.css`; use `<i class="ic ic-route"></i>`).
+- **Static sections** are pure functions in `ui/sections.py` (all user text is escaped) and are unit-tested.
+- **Wizard state:** answers live in `st.session_state.wiz`; widgets of other steps are unmounted, so values are
+  copied on every Back/Continue (`save_wizard`). Generation is triggered via `pending`, run inline with a live
+  progress card, then results are cached with their export files.
+- **Motion:** CSS only. Scroll reveals use `animation-timeline: view()` (Chromium; other browsers simply show the
+  content). Everything respects `prefers-reduced-motion`.

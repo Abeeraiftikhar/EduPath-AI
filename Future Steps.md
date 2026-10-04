@@ -154,6 +154,39 @@ Run with `pip install -r requirements-dev.txt && pytest -q`.
 **Dark mode redesign** (`assets/theme_dark.css`): a "midnight slate" palette with an indigo accent. Layered surfaces (page → card → raised), soft off-white text, a faint accent glow in the page background, gradient logo and headline accent, and tinted success/danger states. Streamlit's own widgets were restyled as well: the washed-out "agents working" status box, input outlines, dropdown menus, radios, checkboxes, expanders, tabs, alerts and buttons now all share one accent.
 **Verified:** 36 tests pass, and real-browser dark screenshots of the home page, form, open dropdown, progress box, results, validation, assessments and export.
 
+## ✅ UI/UX upgrade (branch `waleed-ui-upgrade`, from the professional design spec)
+
+The spec assumes React/Tailwind/Framer Motion. The app is Streamlit, so each item was **implemented natively or adapted**, and the ones that do not fit are listed honestly below.
+
+| Spec section | Status | How |
+|---|---|---|
+| §4 Typography | ✅ | Sora (headings) + Plus Jakarta Sans (UI), spec sizes/tracking; system-font fallback |
+| §5–6–7 Colour, background, texture | ✅ | Spec palette as tokens; layered radial glow; faint dot grid instead of noise |
+| §8 Navigation | ✅ | Sticky glass bar: logo · Discover · How it works · CTA · theme icon; compact on phones |
+| §9–10 Hero + preview | ✅ | New headline/copy/CTAs/trust row; preview card with stats grid and module path, rotating 4 samples (counts verified against real Demo output by a test) |
+| §11, §15–17 Agent pipeline / process | ✅ adapted | 5-node pipeline in the *real* backend order with icons, per-agent colours, travelling pulse and scroll-drawn line. Shown as a sequence rather than a fan-out, because that is how the agents actually run |
+| §12–13 Hero motion, floating card | ✅ | Staggered entrances, card floats ±6 px |
+| §14 Spacing | ✅ | 8/16/24/48/96 scale |
+| §18–19 Why EduPath-AI, bento grid | ✅ | Four differentiators, bento with varied card sizes |
+| §20–21 Multi-step onboarding + progress | ✅ | 5 steps (Topic, Level, Goal, Time, Review) with animated progress; weekly time is a new real input passed to the course request |
+| §22–23 Generation state | ✅ | Live per-agent checklist, progress bar, shimmer on the active row, regeneration row |
+| §24–27 Course page, modules, quality, explainability | ✅ | Course header with chips, module cards (lessons/assessments counts), score ring computed from real checks, "Why this path was shaped this way" |
+| §28 Light mode | ✅ | Dedicated palette from the spec, not an inversion |
+| §29–31 Buttons, cards, glass | ✅ | Arrow-nudge CTAs, 4 px card lifts, glass only on nav/preview/progress |
+| §32 Icons | ✅ adapted | One Lucide-style set, delivered as CSS masks (Streamlit strips inline SVG) |
+| §33–34 Motion + scroll animation | ✅ adapted | CSS scroll-driven reveals (Chromium; others show content statically) |
+| §35–36 Accessibility, responsive | ✅ | Focus rings, reduced-motion, tablet/phone breakpoints |
+| §37–38, 48 Footer, credibility, final CTA | ✅ | Three-column footer; no fake metrics or testimonials |
+| §39–41 Empty/loading/error states | ✅ partial | Friendly messages that say answers are saved; retry via Regenerate |
+| §54–55 Logo + favicon | ✅ | Sparkle mark in the nav; three-node path + spark favicon |
+| §56 SEO/social metadata | 🟡 partial | Page title done; Streamlit cannot set meta description or Open Graph tags |
+| §40 "Retry only the failed agent" | 🔲 | Needs per-agent state persistence; the validator already regenerates only failing components |
+| §42–43 Dashboard, learning progress, streaks | 🔲 | Intentionally skipped: there is no learner-progress data, and the spec says to show only real metrics |
+| §45–46 React/Tailwind/Framer/Lenis structure | n/a | Not applicable to Streamlit |
+| §26/§57 Performance | ✅ | No images or JS libraries added; CSS only |
+
+**Verified:** 47 tests (11 new: HTML escaping, sample-count honesty, wizard validation, build, regenerate, new course) and real-browser screenshots in dark, light and phone widths, including a live Gemini run through the wizard.
+
 ---
 
 ## Out of scope (kept simple on purpose)

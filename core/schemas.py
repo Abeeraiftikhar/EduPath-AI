@@ -7,6 +7,7 @@ class CourseRequest(BaseModel):
     duration: str
     difficulty: str
     learning_goal: str
+    weekly_hours: Optional[str] = None   # e.g. "5-8 hrs/week"; used to size the workload
 
 class Module(BaseModel):
     number: int

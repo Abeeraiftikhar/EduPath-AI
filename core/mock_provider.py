@@ -48,6 +48,10 @@ def _audience(req) -> str:
     return a if any(c.isupper() for c in a[1:]) else a.lower()
 
 
+def _article(word: str) -> str:
+    return "An" if word[:1].lower() in "aeiou" else "A"
+
+
 class MockProvider:
     """Deterministic provider for demos and tests: no API key, but it adapts to the request.
 
@@ -81,8 +85,9 @@ class MockProvider:
             ))
         return Curriculum(
             title=f"{t}: {req.duration} {req.difficulty} Learning Path",
-            description=(f"A {req.difficulty.lower()} {req.duration.lower()} course for {_audience(req)}. "
-                         f"Goal: {_goal(req).lower()}."),
+            description=(f"{_article(req.difficulty)} {req.difficulty.lower()}, {parse_weeks(req.duration)}-week course for {_audience(req)}. "
+                         f"Goal: {_goal(req).lower()}."
+                         + (f" Designed for about {req.weekly_hours}." if req.weekly_hours else "")),
             prerequisites=["Basic computer literacy", f"Motivation to learn {t}"]
             + (["Some prior exposure to the subject area"] if req.difficulty != "Beginner" else []),
             modules=modules,

@@ -1,159 +1,46 @@
-/* Dark mode: "midnight slate" with an indigo accent.
-   Layers (back to front): page -> surface -> surface-2 (raised). Text is soft white, never pure #FFF. */
+/* Dark theme (default). Only tokens and a few depth effects differ; components read the tokens. */
 :root {
-    --blue:#7C9BFF;            /* accent used for text, links, icons */
-    --blue-dark:#5B7BF5;       /* primary button hover */
-    --blue-deep:#E3E9FF;       /* brand / emphasis text */
-    --blue-soft:#1B2646;
-    --text:#E7EBF4;
-    --text-2:#C4CCDD;
-    --muted:#8F9BB3;
-    --faint:#6E7B96;
-    --border:#242D45;
-    --border-blue:#33426B;
-    --surface:#121829;
-    --surface-2:#192139;
-    --bg-a:#0A0E1A;
-    --bg-b:#0D1322;
-    --shadow:rgba(2,6,23,.55);
-    --shadow-soft:rgba(2,6,23,.35);
-    --success:#4ADE9A;
-    --success-bg:#0F2B23;
+    --bg:#070B17;
+    --bg-2:#0B1120;
+    --surface:#10182A;
+    --surface-2:#151F34;
+    --primary:#6C7CFF;
+    --primary-2:#8B7CFF;
+    --highlight:#A5B4FF;
+    --primary-soft:rgba(108,124,255,.13);
+    --accent-fill:#5B6CF5;
+    --accent-fill-hover:#6F7FFF;
+    --text:#F4F7FF;
+    --text-2:#B4BFD6;
+    --muted:#8491AC;
+    --border:rgba(148,163,184,.16);
+    --border-strong:rgba(148,163,184,.26);
+    --success:#34D399;
+    --success-bg:rgba(52,211,153,.12);
     --danger:#FB7185;
-    --danger-bg:#2B1521;
-    --danger-border:#5C2539;
-    --input-bg:#0C1120;
-    --input-border:#2B3654;
-    --accent-fill:#5B7BF5;     /* filled buttons / logo */
+    --danger-bg:rgba(251,113,133,.10);
+    --danger-border:rgba(251,113,133,.35);
+    --input-bg:#0B1120;
+    --nav-bg:rgba(7,11,23,.72);
+    --shadow:0 20px 60px rgba(0,0,0,.35);
+    --shadow-hover:0 26px 70px rgba(0,0,0,.45), 0 0 34px rgba(108,124,255,.10);
+    --glow:rgba(108,124,255,.14);
+    --grid-dot:rgba(148,163,184,.07);
 }
 
-/* Page: deep gradient with a faint accent glow at the top */
 .stApp {
     background:
-        radial-gradient(1100px 520px at 78% -8%, rgba(91,123,245,.16), transparent 62%),
-        radial-gradient(800px 420px at 8% 4%, rgba(139,92,246,.07), transparent 60%),
-        linear-gradient(180deg,var(--bg-a) 0%,var(--bg-b) 100%);
+        radial-gradient(circle at 70% 12%, rgba(108,124,255,.13), transparent 32%),
+        radial-gradient(circle at 18% 38%, rgba(139,124,255,.07), transparent 30%),
+        var(--bg);
     background-attachment:fixed;
 }
-
-.stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"] { color:var(--text); }
-[data-testid="stMarkdownContainer"] p, [data-testid="stMarkdownContainer"] li,
-[data-testid="stMarkdownContainer"] h1, [data-testid="stMarkdownContainer"] h2,
-[data-testid="stMarkdownContainer"] h3, [data-testid="stMarkdownContainer"] h4,
-[data-testid="stWidgetLabel"] p, .stApp label { color:var(--text); }
-[data-testid="stCaptionContainer"], [data-testid="stCaptionContainer"] p { color:var(--muted) !important; }
-.eyebrow, .check, .announce-date, .step-num { color:var(--blue); }
-
-/* Brand details */
-.logo { background:linear-gradient(135deg,#5B7BF5,#8B7CF6); box-shadow:0 6px 18px rgba(91,123,245,.35); }
-.hero-title span {
-    background:linear-gradient(90deg,#8FA9FF,#B4A0FF);
-    -webkit-background-clip:text; background-clip:text; color:transparent;
-}
-.edu-header, .preview, .section-card, .metric-card { backdrop-filter:blur(6px); }
-.preview { box-shadow:0 20px 50px var(--shadow), 0 0 0 1px rgba(124,155,255,.06) inset; }
-.preview:hover { box-shadow:0 26px 60px var(--shadow), 0 0 28px rgba(91,123,245,.12); }
-.badge { background:rgba(124,155,255,.14); color:#A9BDFF; }
-.badge-done { background:rgba(74,222,154,.13); color:var(--success); }
-.dots i { background:#2E3B63; }
-.next-step { border:1px solid rgba(124,155,255,.12); }
-
-/* Inputs */
-.stTextInput input, .stTextArea textarea,
-.stSelectbox div[data-baseweb="select"] > div {
-    background:var(--input-bg) !important; color:var(--text) !important;
-}
-.stTextInput input:focus, .stTextArea textarea:focus {
-    border-color:var(--blue) !important; box-shadow:0 0 0 3px rgba(124,155,255,.22) !important;
-}
-.stTextInput input::placeholder, .stTextArea textarea::placeholder { color:#6B7794 !important; }
-div[data-baseweb="popover"] > div, div[data-baseweb="popover"] ul, div[data-baseweb="menu"] {
-    background:var(--surface-2) !important; color:var(--text) !important; border:1px solid var(--border-blue);
-}
-div[data-baseweb="popover"] li, div[data-baseweb="popover"] li * { color:var(--text) !important; background:transparent !important; }
-div[data-baseweb="popover"] li:hover, div[data-baseweb="popover"] li[aria-selected="true"] { background:var(--blue-soft) !important; }
-div[data-baseweb="select"] svg { fill:var(--muted); }
-[data-testid="stTooltipContent"], div[data-baseweb="tooltip"] > div { background:var(--surface-2) !important; color:var(--text) !important; }
-
-/* Input wrappers: Streamlit draws the visible border on the baseweb wrapper, not on the <input> */
-div[data-baseweb="input"], div[data-baseweb="base-input"], div[data-baseweb="textarea"],
-.stSelectbox div[data-baseweb="select"] > div {
-    background:var(--input-bg) !important; border-color:var(--input-border) !important;
-}
-div[data-baseweb="input"]:focus-within, div[data-baseweb="textarea"]:focus-within,
-.stSelectbox div[data-baseweb="select"]:focus-within > div {
-    border-color:var(--blue) !important; box-shadow:0 0 0 3px rgba(124,155,255,.20) !important;
-}
-.stTextInput input, .stTextArea textarea { border-color:transparent !important; box-shadow:none !important; }
-
-/* Radio buttons and checkboxes: quiet outline when off, accent fill when on */
-label[data-baseweb="radio"] > div:first-child {
-    background:var(--input-bg) !important; border:1.5px solid var(--border-blue) !important;
-}
-label[data-baseweb="radio"] > div:first-child > div { background:transparent !important; }
-label[data-baseweb="radio"]:has(input:checked) > div:first-child {
-    background:var(--accent-fill) !important; border-color:var(--accent-fill) !important;
-}
-label[data-baseweb="radio"]:has(input:checked) > div:first-child > div { background:#fff !important; }
-label[data-baseweb="checkbox"] > span:first-child {
-    background:var(--input-bg) !important; border:1.5px solid var(--border-blue) !important;
-}
-label[data-baseweb="checkbox"]:has(input:checked) > span:first-child {
-    background:var(--accent-fill) !important; border-color:var(--accent-fill) !important;
-}
-.stTooltipIcon button, .stTooltipIcon svg { color:var(--faint) !important; }
-
-/* Form wrapper */
-[data-testid="stForm"] { background:var(--surface); border-color:var(--border) !important; border-radius:16px; }
-div[role="radiogroup"] label p, [data-testid="stCheckbox"] label p { color:var(--text) !important; }
-
-/* Expanders and the "agents working" status box. Streamlit styles the <summary> itself, so target it. */
-[data-testid="stExpander"], [data-testid="stStatus"], [data-testid="stExpander"] details {
-    background:var(--surface) !important; border:1px solid var(--border) !important; border-radius:14px !important;
-    color:var(--text);
-}
-[data-testid="stExpander"] summary, [data-testid="stStatus"] summary,
-[data-testid="stExpanderDetails"] summary { background:var(--surface-2) !important; color:var(--text) !important; border-radius:13px; }
-[data-testid="stExpander"] summary *, [data-testid="stStatus"] summary * { color:var(--text) !important; }
-[data-testid="stExpander"] summary:hover, [data-testid="stStatus"] summary:hover { background:var(--blue-soft) !important; }
-[data-testid="stExpander"] summary svg, [data-testid="stStatus"] summary svg { fill:var(--muted); color:var(--muted); }
-[data-testid="stExpanderDetails"], [data-testid="stStatus"] [data-testid="stExpanderDetails"] { background:transparent !important; }
-
-/* Tabs */
-button[data-baseweb="tab"] { color:var(--muted) !important; background:transparent !important; }
-button[data-baseweb="tab"]:hover { color:var(--text) !important; }
-button[data-baseweb="tab"][aria-selected="true"] { color:var(--blue) !important; }
-div[data-baseweb="tab-highlight"] { background:var(--blue) !important; }
-div[data-baseweb="tab-border"] { background:var(--border) !important; }
-
-/* Alerts (success / warning / error / info), tinted by type */
-[data-testid="stAlert"] { border:1px solid var(--border-blue); border-radius:12px; background:var(--surface-2) !important; }
-[data-testid="stAlert"] * { color:var(--text) !important; }
-[data-testid="stAlertContainer"]:has([data-testid="stAlertDynamicIcon"]) { background:transparent; }
-div[data-testid="stAlert"]:has([aria-label*="success" i]), div[data-testid="stAlert"]:has(svg[color="success"]) { background:var(--success-bg) !important; border-color:#1D5A44; }
-
-/* Code, JSON, dividers */
-[data-testid="stCode"], [data-testid="stJson"], pre, code { background:var(--input-bg) !important; color:#D6DEF0 !important; }
-hr { border-color:var(--border) !important; }
-
-/* Buttons: primary keeps a solid accent, secondary is a quiet outlined surface */
-div.stButton > button[kind="primary"], div.stDownloadButton > button[kind="primary"],
-div.stFormSubmitButton > button[kind="primary"] {
-    background:var(--accent-fill) !important; color:#fff !important; border-color:transparent !important;
-    box-shadow:0 6px 18px rgba(91,123,245,.28);
-}
-div.stButton > button[kind="primary"]:hover, div.stDownloadButton > button[kind="primary"]:hover,
-div.stFormSubmitButton > button[kind="primary"]:hover { background:var(--blue-dark) !important; }
-div.stButton > button[kind="secondary"], div.stDownloadButton > button[kind="secondary"] {
-    background:var(--surface) !important; color:var(--text-2) !important; border-color:var(--border-blue) !important;
-}
-div.stButton > button[kind="secondary"]:hover, div.stDownloadButton > button[kind="secondary"]:hover {
-    background:var(--blue-soft) !important; color:#fff !important; border-color:var(--blue) !important;
-}
-
-/* Form submit buttons use a different `kind`, so match them directly to keep one consistent accent */
-div.stFormSubmitButton > button {
-    background:var(--accent-fill) !important; color:#fff !important; border-color:transparent !important;
-    box-shadow:0 6px 18px rgba(91,123,245,.28);
-}
-div.stFormSubmitButton > button:hover { background:var(--blue-dark) !important; }
+.display .grad, .h2 .grad { background:linear-gradient(90deg, #A5B4FF, #B9A8FF); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.logo { box-shadow:0 6px 22px rgba(108,124,255,.35); }
+.preview, .report, .gen, .st-key-wizard, .course-head { backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
+.preview { background:linear-gradient(180deg, rgba(21,31,52,.92), rgba(16,24,42,.92)); }
+.node .orb { box-shadow:0 0 0 6px var(--bg), 0 0 28px rgba(108,124,255,.16); }
+.card { background:linear-gradient(180deg, rgba(21,31,52,.55), rgba(16,24,42,.75)); }
+.card:hover { border-color:rgba(165,180,255,.35); }
+.cta-band { background:radial-gradient(560px 280px at 50% 0%, rgba(108,124,255,.18), transparent 70%), var(--surface); }
+div.stButton > button[kind="primary"], div.stDownloadButton > button[kind="primary"], div.stFormSubmitButton > button[kind="primary"] { box-shadow:0 8px 26px rgba(91,108,245,.35); }

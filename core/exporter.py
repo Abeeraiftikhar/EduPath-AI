@@ -17,7 +17,7 @@ from core.utils import mcq_answer_index
 
 # --------------------------------------------------------------------- Markdown
 def _request_lines(course: CoursePackage):
-    return [f"- **{k.replace('_', ' ').title()}:** {v}" for k, v in course.request.model_dump().items()]
+    return [f"- **{k.replace('_', ' ').title()}:** {v}" for k, v in course.request.model_dump().items() if v]
 
 
 def _lesson_md(course: CoursePackage):
@@ -136,6 +136,8 @@ def build_pdf(course: CoursePackage) -> bytes:
 
     story = [Spacer(1, 1.3 * inch), p(c.title, styles["Title"]), Spacer(1, 10), p(c.description, body), Spacer(1, 14)]
     for k, val in course.request.model_dump().items():
+        if not val:
+            continue
         story.append(p(f"**{k.replace('_', ' ').title()}:** {val}"))
     story += [Spacer(1, 14), p(f"Quality check: {v.status} - {v.score}% of checks passed", small), PageBreak()]
 

@@ -14,7 +14,7 @@ EduPath-AI transforms a simple learning request into a structured, validated and
 - **10-check Quality agent** with an explainable score, and a **real feedback loop** that sends issues back to only the failing agent.
 - **Live agent progress**, per-check validation checklist, roadmap timeline, highlighted MCQ answers.
 - **Resilient Gemini mode**: retries that honor rate-limit hints, model fallbacks, friendly errors, automatic fallback to demo output.
-- **Dark mode**, sober CSS animations (respecting reduced-motion) and a rotating sample-course preview.
+- **Premium UI** (branch `waleed-ui-upgrade`): Sora + Plus Jakarta Sans typography, a dark-first design system with a dedicated light theme, sticky glass navigation, animated agent pipeline, 5-step onboarding wizard, live generation progress, and a results workspace with a quality-score ring and explainability. Motion is sober and fully disabled under `prefers-reduced-motion`.
 - **Complete exports**: PDF (with page numbers), Markdown, `Lessons.md`, `Answer_Key.md`, JSON, ZIP.
 
 ### Input
@@ -114,10 +114,12 @@ download the ZIP. The full walkthrough is in [docs/DEMO_SCRIPT.md](docs/DEMO_SCR
 
 ```text
 EduPath-AI/
-├── app.py                      # Streamlit UI
+├── app.py                      # Streamlit app: nav, hero, wizard, progress, results
+├── ui/                         # HTML section builders (sections.py) + icon generator (make_icons.py)
+├── assets/                     # theme.css, theme_dark.css, icons.css (generated), favicon.png
 ├── agents/                     # curriculum, content, assessment, quality (+ base.py feedback prompt)
 ├── core/                       # schemas, orchestrator, providers, exporter, utils, config
-├── tests/test_pipeline.py      # 23 tests: pipeline, quality checks, feedback loop, exports, Gemini handling
+├── tests/test_pipeline.py      # 47 tests: pipeline, quality checks, feedback loop, exports, Gemini handling, UI builders and wizard flow
 ├── examples/                   # pre-generated sample package
 ├── docs/                       # architecture, user guide, demo script, scope, handoff
 ├── requirements.txt / requirements-dev.txt

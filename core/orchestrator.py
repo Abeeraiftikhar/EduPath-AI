@@ -37,12 +37,12 @@ class CourseOrchestrator:
         snap_objectives(assessments.items, curriculum)
         return assessments
 
-    def generate(self, topic, audience, duration, difficulty, learning_goal, on_step=None):
+    def generate(self, topic, audience, duration, difficulty, learning_goal, on_step=None, weekly_hours=None):
         """`on_step(agent_name, state, detail)` is called with state 'running' or 'done' for live progress."""
         step = on_step or (lambda *args: None)
         request = CourseRequest(
             topic=topic, audience=audience, duration=duration,
-            difficulty=difficulty, learning_goal=learning_goal,
+            difficulty=difficulty, learning_goal=learning_goal, weekly_hours=weekly_hours,
         )
 
         step(AGENT_STEPS[0], "running", "")
@@ -89,18 +89,18 @@ class CourseOrchestrator:
 
 
 def generate_course(provider, topic, audience, duration, difficulty, learning_goal,
-                    on_step=None, inject_fault=False):
+                    on_step=None, inject_fault=False, weekly_hours=None):
     """Safe entry point for the UI: if Gemini fails, fall back to demo output with a visible notice."""
     try:
         return CourseOrchestrator(provider, inject_fault).generate(
-            topic, audience, duration, difficulty, learning_goal, on_step)
+            topic, audience, duration, difficulty, learning_goal, on_step, weekly_hours)
     except ProviderError as exc:
         if provider != "gemini":
             raise
         if on_step:
             on_step("Gemini", "done", "unavailable, switching to demo output")
         package = CourseOrchestrator("mock", inject_fault).generate(
-            topic, audience, duration, difficulty, learning_goal, on_step)
+            topic, audience, duration, difficulty, learning_goal, on_step, weekly_hours)
         package.notice = f"Gemini unavailable ({exc}). Showing demo output instead."
         package.notice_details = exc.details
         return package

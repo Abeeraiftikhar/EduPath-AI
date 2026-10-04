@@ -25,6 +25,14 @@ LEARNING_GOALS = [
     "Teach or train others on this topic",
 ]
 
+WEEKLY_HOURS = ["2-4 hrs/week", "5-8 hrs/week", "8-12 hrs/week", "12+ hrs/week"]
+
+LEVEL_HINTS = {
+    "Beginner": "New to the topic",
+    "Intermediate": "Some experience",
+    "Advanced": "Confident, going deeper",
+}
+
 DURATIONS = ["1 Week", "2 Weeks", "4 Weeks", "6 Weeks", "8 Weeks", "12 Weeks"]
 DIFFICULTIES = ["Beginner", "Intermediate", "Advanced"]
 
@@ -37,4 +45,5 @@ SAMPLE = {
     "duration": "4 Weeks",
     "difficulty": "Intermediate",
     "goal": "Build practical, job-ready skills",
+    "hours": "5-8 hrs/week",
 }
