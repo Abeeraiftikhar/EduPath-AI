@@ -38,6 +38,16 @@ def module_count(weeks: int) -> int:
     return 2 if weeks <= 1 else 3 if weeks == 2 else 4 if weeks <= 4 else 5 if weeks <= 6 else 6
 
 
+def _goal(req) -> str:
+    return req.learning_goal.strip().rstrip(".")
+
+
+def _audience(req) -> str:
+    """Lower-case a generic audience ('Undergraduate students') but keep names like 'PhD researchers'."""
+    a = req.audience
+    return a if any(c.isupper() for c in a[1:]) else a.lower()
+
+
 class MockProvider:
     """Deterministic provider for demos and tests: no API key, but it adapts to the request.
 
@@ -71,8 +81,8 @@ class MockProvider:
             ))
         return Curriculum(
             title=f"{t}: {req.duration} {req.difficulty} Learning Path",
-            description=(f"A {req.difficulty.lower()} {req.duration.lower()} course for {req.audience.lower()}, "
-                         f"focused on this goal: {req.learning_goal}"),
+            description=(f"A {req.difficulty.lower()} {req.duration.lower()} course for {_audience(req)}. "
+                         f"Goal: {_goal(req).lower()}."),
             prerequisites=["Basic computer literacy", f"Motivation to learn {t}"]
             + (["Some prior exposure to the subject area"] if req.difficulty != "Beginner" else []),
             modules=modules,
@@ -103,13 +113,13 @@ class MockProvider:
                     module_number=m.number, lesson_number=n,
                     title=f"{m.title}: {kind}",
                     notes=(f"### {m.title}: {kind}\n\nThis lesson {focus} behind **{req.topic}** for "
-                           f"{req.audience.lower()}.\n\n**By the end you will be able to:**\n{objectives}\n\n"
+                           f"{_audience(req)}.\n\n**By the end you will be able to:**\n{objectives}\n\n"
                            f"**Key idea:** {m.summary}"),
                     examples=[f"Worked example: {m.title.lower()} applied to a typical {req.topic} task.",
-                              f"Interpretation example: reading the result of a {req.topic} activity for a {req.audience.lower()} learner."],
+                              f"Interpretation example: reading the result of a {req.topic} activity for a learner in this audience."],
                     exercises=[f"Practice task: complete one {kind.lower()} activity on {req.topic}.",
                                "Reflect: explain your result in 3-5 sentences."],
-                    case_study=(f"A learner needs to achieve: {req.learning_goal} "
+                    case_study=(f"A learner's aim is to {_goal(req).lower()}. "
                                 f"Decide how '{m.title}' contributes and justify each step."),
                     learning_objectives=m.learning_objectives,
                 ))
@@ -152,7 +162,7 @@ class MockProvider:
         ))
         items.append(AssessmentItem(
             type="project", title="Capstone Mini-Project",
-            prompt=f"Design a mini-project addressing: {req.learning_goal} Include objective, method, output and evaluation.",
+            prompt=f"Design a mini-project for the goal \"{_goal(req)}\". Include objective, method, output and evaluation.",
             answer="Project-specific; evaluate against objective, method, evidence and reflection.",
             learning_objective=last.learning_objectives[1],
             rubric="4 - strong alignment and evidence; 3 - adequate alignment; 2 - major gaps; 1 - incomplete.",

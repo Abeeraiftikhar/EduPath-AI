@@ -189,3 +189,50 @@ def test_gemini_provider_retries_then_succeeds(monkeypatch):
     monkeypatch.setattr("core.llm_provider.time.sleep", lambda s: None)
     assert provider.generate_structured("p", LessonPackage).lessons == []
     assert FakeModels.calls == 3
+
+
+# ------------------------------------------------- topic handling & options
+from core.options import AUDIENCES, LEARNING_GOALS, DURATIONS, DIFFICULTIES, SAMPLE  # noqa: E402
+from core.utils import clean_topic, validate_topic, snap_objectives  # noqa: E402
+
+
+@pytest.mark.parametrize("raw,expected", [
+    ("python", "Python"),
+    ("  digital   marketing ", "Digital Marketing"),
+    ("python for bioinformatics", "Python for Bioinformatics"),
+    ("SQL basics", "SQL Basics"),
+])
+def test_clean_topic(raw, expected):
+    assert clean_topic(raw) == expected
+
+
+def test_validate_topic():
+    assert validate_topic("Python") is None                  # a single word is valid
+    assert validate_topic("") and validate_topic("a") and validate_topic("123") and validate_topic("x" * 81)
+
+
+@pytest.mark.parametrize("topic", ["python", "Photosynthesis", "SQL", "Python course"])
+def test_single_word_topics_produce_valid_courses(topic):
+    assert make(topic=clean_topic(topic)).validation.status == "PASS"
+
+
+def test_every_form_option_generates_a_valid_course():
+    for goal in LEARNING_GOALS:
+        for audience in AUDIENCES:
+            r = CourseOrchestrator("mock").generate("Python", audience, DURATIONS[0], DIFFICULTIES[2], goal)
+            assert r.validation.status == "PASS"
+
+
+def test_sample_profile_uses_valid_options():
+    assert SAMPLE["audience"] in AUDIENCES and SAMPLE["goal"] in LEARNING_GOALS
+    assert SAMPLE["duration"] in DURATIONS and SAMPLE["difficulty"] in DIFFICULTIES
+
+
+def test_snap_objectives_repairs_paraphrased_mapping():
+    curriculum, _, assessments = parts(make())
+    original = assessments.items[0].learning_objective
+    assessments.items[0].learning_objective = original.rstrip(".").lower() + " effectively"
+    assert snap_objectives(assessments.items, curriculum) == 1
+    assert assessments.items[0].learning_objective == original
+    assessments.items[1].learning_objective = "Totally unrelated words"   # too different: left alone
+    assert snap_objectives(assessments.items, curriculum) == 0

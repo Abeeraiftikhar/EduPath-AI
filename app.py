@@ -10,7 +10,8 @@ from core.orchestrator import generate_course  # noqa: E402  (after load_dotenv 
 from core.llm_provider import ProviderError  # noqa: E402
 from core.config import settings  # noqa: E402
 from core.exporter import build_course_zip, build_markdown, build_pdf  # noqa: E402
-from core.utils import mcq_answer_index  # noqa: E402
+from core.utils import mcq_answer_index, clean_topic, validate_topic  # noqa: E402
+from core.options import AUDIENCES, LEARNING_GOALS, DURATIONS, DIFFICULTIES, SAMPLE, TOPIC_EXAMPLES  # noqa: E402
 
 st.set_page_config(
     page_title="EduPath-AI — AI-Powered Course Generator",
@@ -39,26 +40,37 @@ def init_state():
     st.session_state.setdefault("result", None)
     st.session_state.setdefault("show_generator", False)
     st.session_state.setdefault("sample", False)
-    st.session_state.setdefault("view", "discover")  # discover | announcement | how
+    st.session_state.setdefault("view", "discover")  # discover | how
     st.session_state.setdefault("dark", False)
     st.session_state.setdefault("exports", None)     # cached {"md", "pdf", "zip"} for the current result
-    st.session_state.setdefault("scroll_to_results", False)
+    st.session_state.setdefault("scroll_to", None)  # anchor id to smooth-scroll to on the next render
 
 
 init_state()
 
 
-SCROLL_JS = ("<script>const el=window.parent.document.getElementById('workspace');"
-             "if(el){el.scrollIntoView({behavior:'smooth',block:'start'});}</script>")
-
-
-def scroll_to_workspace():
-    """Best-effort smooth scroll to the results. Purely cosmetic, so any failure is ignored."""
+def scroll_to_anchor(anchor_id: str):
+    """Best-effort smooth scroll to an element id. Purely cosmetic, so any failure is ignored.
+    Retries briefly because the target may still be rendering when the script runs."""
+    # A changing nonce makes every request a *new* element; otherwise Streamlit reuses the identical
+    # iframe from the previous scroll and never re-runs the script.
+    st.session_state.scroll_nonce = st.session_state.get("scroll_nonce", 0) + 1
+    js = (f"<script>/*{st.session_state.scroll_nonce}*/(function(){{let n=0;const t=setInterval(function(){{"
+          f"const el=window.parent.document.getElementById('{anchor_id}');"
+          "if(el){el.scrollIntoView({behavior:'smooth',block:'start'});clearInterval(t);}"
+          "else if(++n>25){clearInterval(t);}},60);})();</script>")
     try:
         import streamlit.components.v1 as components
-        components.html(SCROLL_JS, height=0)
+        components.html(js, height=0)
     except Exception:
         pass
+
+
+def consume_scroll(anchor_id: str):
+    """Scroll to `anchor_id` once if a button asked for it."""
+    if st.session_state.scroll_to == anchor_id:
+        st.session_state.scroll_to = None
+        scroll_to_anchor(anchor_id)
 
 
 def toggle_theme():
@@ -82,6 +94,7 @@ def reset_course():
     st.session_state.sample = False
     st.session_state.show_generator = True
     st.session_state.view = "discover"
+    st.session_state.scroll_to = "generator"
 
 
 def set_view(view, generator=None, sample=None):
@@ -89,6 +102,8 @@ def set_view(view, generator=None, sample=None):
     st.session_state.view = view
     if generator is not None:
         st.session_state.show_generator = generator
+        if generator:
+            st.session_state.scroll_to = "generator"
     if sample is not None:
         st.session_state.sample = sample
 
@@ -109,7 +124,7 @@ st.markdown(
 # Navigation (real buttons, state-driven)
 # -----------------------------
 view = st.session_state.view
-nav1, nav2, nav3, nav4, nav5 = st.columns([1.15, 1.4, 1.2, 1.3, .9])
+nav1, nav2, nav3, nav4 = st.columns([1.15, 1.2, 1.4, .9])
 with nav1:
     st.button(
         "Discover", key="nav_discover",
@@ -118,23 +133,17 @@ with nav1:
     )
 with nav2:
     st.button(
-        "Read an announcement", key="nav_announcement",
-        type="primary" if view == "announcement" else "secondary",
-        on_click=set_view, args=("announcement",), use_container_width=True,
-    )
-with nav3:
-    st.button(
         "How it works", key="nav_how",
         type="primary" if view == "how" else "secondary",
         on_click=set_view, args=("how",), use_container_width=True,
     )
-with nav4:
+with nav3:
     st.button(
         "Tell us about yourself", key="nav_start",
         type="secondary",
         on_click=set_view, args=("discover", True, False), use_container_width=True,
     )
-with nav5:
+with nav4:
     st.button(
         "☀️ Light" if st.session_state.dark else "🌙 Dark", key="nav_theme",
         type="secondary", on_click=toggle_theme, use_container_width=True,
@@ -144,33 +153,6 @@ with nav5:
 # -----------------------------
 # Reusable sections
 # -----------------------------
-ANNOUNCEMENTS = [
-    # Edit these entries to change what appears under "Read an announcement".
-    ("Version 1.0", "EduPath-AI MVP is live",
-     "Generate a full course package — curriculum, lessons, assessments and a quality report — from a single learning goal."),
-    ("Demo mode", "Try it without an API key",
-     "Choose “Demo / Mock” in the generator to explore the full workflow instantly. Switch to Gemini API for AI-written content."),
-    ("Quality layer", "Every package is validated",
-     "A dedicated Quality agent checks alignment, completeness and sequence before you export your course as a ZIP."),
-]
-
-
-def render_announcements():
-    st.write("")
-    st.markdown('<div class="section-title">Announcements</div>', unsafe_allow_html=True)
-    st.markdown('<div class="section-copy">The latest news about EduPath-AI.</div>', unsafe_allow_html=True)
-    st.write("")
-    for date, title, body in ANNOUNCEMENTS:
-        st.markdown(
-            f'<div class="section-card"><div class="announce-date">{html.escape(date)}</div>'
-            f'<div class="announce-title">{html.escape(title)}</div>'
-            f'<div class="section-copy">{html.escape(body)}</div></div>',
-            unsafe_allow_html=True,
-        )
-    st.button("Tell us about yourself  →", key="ann_cta", type="primary",
-              on_click=set_view, args=("discover", True, False))
-
-
 def render_how_it_works():
     st.markdown('<div class="section-title">How EduPath-AI works</div>', unsafe_allow_html=True)
     st.markdown('<div class="section-copy">The interface is intentionally simple; the complexity stays in the backend agent pipeline.</div>', unsafe_allow_html=True)
@@ -263,11 +245,6 @@ def render_footer():
 # -----------------------------
 view = st.session_state.view
 
-if view == "announcement":
-    render_announcements()
-    render_footer()
-    st.stop()
-
 if view == "how":
     st.write("")
     render_how_it_works()
@@ -316,20 +293,27 @@ st.markdown("""
 # Generator
 # -----------------------------
 if st.session_state.show_generator:
+    st.markdown('<div id="generator" class="anchor"></div>', unsafe_allow_html=True)
+    consume_scroll("generator")
     st.markdown('<div class="section-title">Tell us about your learning goal</div>', unsafe_allow_html=True)
-    st.markdown('<div class="section-copy">Provide the basic course requirements. EduPath-AI will coordinate the curriculum, content, assessment and quality agents.</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-copy">Pick a few options and name a topic. EduPath-AI will coordinate the curriculum, content, assessment and quality agents.</div>', unsafe_allow_html=True)
     st.write("")
 
     sample = st.session_state.sample
+    pick = lambda options, key, default=0: options.index(SAMPLE[key]) if sample else default  # noqa: E731
     with st.form("course_form"):
         c1, c2 = st.columns(2)
         with c1:
-            topic = st.text_input("Topic", value="Python for Bioinformatics" if sample else "", placeholder="e.g. Python for Bioinformatics")
-            audience = st.text_input("Target audience", value="Undergraduate students" if sample else "", placeholder="e.g. Undergraduate students")
-            duration = st.selectbox("Duration", ["1 Week", "2 Weeks", "4 Weeks", "6 Weeks", "8 Weeks", "12 Weeks"], index=2)
+            topic = st.text_input(
+                "Topic", value=SAMPLE["topic"] if sample else "", max_chars=80,
+                placeholder="e.g. " + ", ".join(TOPIC_EXAMPLES[:3]),
+                help="A single word is fine, e.g. Python or Photosynthesis. You don't need to add the word 'course'.",
+            )
+            audience = st.selectbox("Target audience", AUDIENCES, index=pick(AUDIENCES, "audience", 2))
+            duration = st.selectbox("Duration", DURATIONS, index=pick(DURATIONS, "duration", 2))
         with c2:
-            difficulty = st.selectbox("Difficulty", ["Beginner", "Intermediate", "Advanced"], index=1 if sample else 0)
-            goal = st.text_area("Learning goal", value="Build practical Python skills for biological sequence analysis." if sample else "", height=112)
+            difficulty = st.selectbox("Difficulty", DIFFICULTIES, index=pick(DIFFICULTIES, "difficulty", 0))
+            goal = st.selectbox("Learning goal", LEARNING_GOALS, index=pick(LEARNING_GOALS, "goal", 0))
             mode = st.radio("Generation mode", ["Demo / Mock — no API key", "Gemini API"],
                             index=1 if settings.gemini_configured else 0, horizontal=True)
             if settings.gemini_configured:
@@ -337,18 +321,20 @@ if st.session_state.show_generator:
             else:
                 st.caption("No GEMINI_API_KEY configured — Gemini mode will fall back to demo output.")
             demo_loop = st.checkbox(
-                "Demonstrate self-correction (demo mode)",
+                "Demonstrate self-correction (Demo / Mock mode only)",
                 help="The first attempt is deliberately flawed so you can watch the Quality agent catch it and the agents fix it.",
             )
         generate = st.form_submit_button("Generate Course", type="primary", use_container_width=True)
 
     if generate:
-        if not topic.strip() or not audience.strip() or not goal.strip():
-            st.error("Please complete Topic, Target audience and Learning goal.")
+        topic_clean = clean_topic(topic)
+        topic_error = validate_topic(topic_clean)
+        if topic_error:
+            st.error(topic_error)
         else:
             provider = "gemini" if mode.startswith("Gemini") else "mock"
             try:
-                with st.status("EduPath-AI is coordinating the agents...", expanded=True) as status:
+                with st.status("EduPath-AI is coordinating the agents… (Gemini takes about 30 seconds)" if provider == "gemini" else "EduPath-AI is coordinating the agents…", expanded=True) as status:
                     def on_step(agent, state, detail):
                         if state == "running":
                             st.write(f"⏳ **{agent}** working… {detail}")
@@ -356,8 +342,8 @@ if st.session_state.show_generator:
                             st.write(f"✅ **{agent}** — {detail}")
 
                     new_result = generate_course(
-                        provider, topic.strip(), audience.strip(), duration,
-                        difficulty, goal.strip(), on_step=on_step,
+                        provider, topic_clean, audience, duration,
+                        difficulty, goal, on_step=on_step,
                         inject_fault=demo_loop and provider == "mock",
                     )
                     # Build the export files once per course, not on every Streamlit rerun.
@@ -367,7 +353,7 @@ if st.session_state.show_generator:
                     }
                     status.update(label="Course package generated", state="complete", expanded=False)
                 st.session_state.result = new_result
-                st.session_state.scroll_to_results = True
+                st.session_state.scroll_to = "workspace"
                 st.rerun()  # refresh so the preview card shows the new course
             except ProviderError as exc:
                 st.error(str(exc))
@@ -383,10 +369,8 @@ result = st.session_state.result
 
 if result:
     st.divider()
-    st.markdown('<div id="workspace"></div>', unsafe_allow_html=True)
-    if st.session_state.scroll_to_results:
-        st.session_state.scroll_to_results = False
-        scroll_to_workspace()
+    st.markdown('<div id="workspace" class="anchor"></div>', unsafe_allow_html=True)
+    consume_scroll("workspace")
 
     head_l, head_r = st.columns([3, 1])
     with head_l:

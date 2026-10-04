@@ -12,7 +12,7 @@ class Settings:
     gemini_fallback_models: tuple = tuple(
         m.strip() for m in os.getenv("GEMINI_FALLBACK_MODELS", "gemini-3.1-flash-lite,gemini-flash-lite-latest").split(",") if m.strip()
     )
-    max_validation_retries: int = int(os.getenv("MAX_VALIDATION_RETRIES", "1"))
+    max_validation_retries: int = int(os.getenv("MAX_VALIDATION_RETRIES", "2"))
 
     @property
     def gemini_configured(self) -> bool:

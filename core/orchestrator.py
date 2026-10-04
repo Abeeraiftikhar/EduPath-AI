@@ -2,6 +2,7 @@ from core.schemas import CourseRequest, CoursePackage
 from core.llm_provider import GeminiProvider, ProviderError
 from core.mock_provider import MockProvider
 from core.config import settings
+from core.utils import snap_objectives
 from agents.curriculum_agent import CurriculumAgent
 from agents.content_agent import ContentAgent
 from agents.assessment_agent import AssessmentAgent
@@ -39,6 +40,7 @@ class CourseOrchestrator:
 
         step(AGENT_STEPS[2], "running", "")
         assessments = self.assessment_agent.run(request, curriculum, lessons)
+        snap_objectives(assessments.items, curriculum)
         step(AGENT_STEPS[2], "done", f"{len(assessments.items)} items")
 
         step(AGENT_STEPS[3], "running", "")
@@ -59,6 +61,7 @@ class CourseOrchestrator:
                 lessons = self.content_agent.run(request, curriculum, feedback)
             if "assessments" in failed:
                 assessments = self.assessment_agent.run(request, curriculum, lessons, feedback)
+                snap_objectives(assessments.items, curriculum)
             resolved += [i for i in feedback if i not in resolved]
             validation = self.quality_agent.run(curriculum, lessons, assessments, duration)
             step("Regeneration", "done", f"{validation.status} ({validation.score:.0f}%)")

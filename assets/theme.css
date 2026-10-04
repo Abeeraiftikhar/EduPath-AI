@@ -167,6 +167,9 @@ div.stDownloadButton > button[kind="secondary"]:hover {
 .feature { display:flex; gap:9px; align-items:center; }
 .check { color:var(--blue); font-weight:700; }
 
+/* Scroll targets */
+.anchor { scroll-margin-top:16px; height:0; }
+
 /* Sections */
 .section-card {
     background:var(--surface); border:1px solid var(--border);

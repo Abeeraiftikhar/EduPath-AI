@@ -10,7 +10,7 @@ class CurriculumAgent:
             return self.provider.curriculum(request, feedback)
         prompt = f"""
 You are the Curriculum Architect for EduPath-AI.
-Create a coherent curriculum from this request:
+Create a coherent curriculum from this request. The topic may be a single word or a short phrase (e.g. "Python"); treat it as the subject to teach, never ask for clarification:
 {request.model_dump_json(indent=2)}
 Requirements: prerequisites, measurable learning objectives, modules and a realistic roadmap.
 Return only data matching the supplied Curriculum schema.

@@ -121,6 +121,23 @@ Run with `pip install -r requirements-dev.txt && pytest -q`.
 
 ---
 
+## ✅ Round 3 — Form, navigation and reliability fixes
+**What was done**
+- **Announcements removed:** the "Read an announcement" button and its page are gone.
+- **Dropdowns instead of typing:** Target audience (12 options) and Learning goal (7 options) are now select boxes. Duration and Difficulty stay as dropdowns. The options live in `core/options.py`. Topic is the only free-text field, with examples and a hint that one word is enough.
+- **Single-word topics ("python"):** the backend produced valid courses for "python" in both modes, so the failure was not a crash. The likely causes were (a) Gemini's first answer failing the strict quality check, for example by paraphrasing a learning objective, and (b) hitting the free-tier rate limit on repeated tries. Fixes:
+  - assessment objectives are now snapped to the closest real objective (`snap_objectives`), which removes the most common false FAIL;
+  - the feedback loop allows 2 retries (was 1);
+  - the topic is tidied (`python` → `Python`, SQL-style acronyms kept) and validated, and a single word is explicitly allowed;
+  - the Gemini prompt tells the model that one-word topics are valid.
+  Verified live: "python" with Gemini → PASS.
+- **Navigation scrolls:** "Tell us about yourself" and "Try a sample profile" (and the same buttons on How it works, plus New course) now smooth-scroll to the form. Generating scrolls to the results. A hidden bug was fixed here: Streamlit re-used an identical scroll script, so a second click did nothing, and each request now carries a unique token. Verified in a real browser for all cases.
+- **Polish:** the status box warns that Gemini takes about 30 s; the self-correction tick box is labelled "Demo / Mock mode only"; mock text now reads naturally with the fixed goals and audiences.
+
+**Verified:** 35 tests pass (12 new: topic cleaning and validation, every audience × goal combination, sample profile options, objective snapping), plus real-browser checks of the form, scrolling and a live Gemini run.
+
+---
+
 ## Out of scope (kept simple on purpose)
 Accounts, databases, LMS integration, multi-LLM orchestration, analytics dashboards and multilingual support.
 
