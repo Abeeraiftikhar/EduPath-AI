@@ -1,6 +1,6 @@
 {
   "name": "EduPath-AI",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Autonomous multi-agent course and training curriculum generator",
   "source_basis": "EduPath-AI Team Brief",
   "agents": [
@@ -17,6 +17,6 @@
     "PDF",
     "JSON",
     "Markdown",
-    "ZIP"
+    "ZIP (incl. Lessons.md and Answer_Key.md)"
   ]
 }

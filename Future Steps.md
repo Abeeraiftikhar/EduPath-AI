@@ -1,0 +1,113 @@
+# Future Steps — Making EduPath-AI Excellent
+
+Work is tracked on the **`waleed-works`** branch. Each step below is marked ✅ Done (with a short explanation of what was built and verified) or 🔲 Remaining (manual actions that need the owner).
+
+**Progress: 9 of 10 steps fully done, Step 10 is done except for 3 manual items (deploy, screenshots, rehearsal).**
+
+## Status at a glance
+
+| # | Step | Status |
+|---|---|---|
+| 1 | Mock mode responds to user input | ✅ Done |
+| 2 | Meaningful Quality agent | ✅ Done |
+| 3 | Real feedback loop | ✅ Done |
+| 4 | Harden Gemini mode | ✅ Done |
+| 5 | Fix and enrich exports | ✅ Done |
+| 6 | Live progress while generating | ✅ Done |
+| 7 | Upgraded results workspace | ✅ Done |
+| 8 | Clean repo and dependencies | ✅ Done |
+| 9 | Expanded tests | ✅ Done (23 passing) |
+| 10 | Docs, deployment, demo polish | 🟡 Docs and sample done; 3 manual items left |
+
+---
+
+## ✅ Step 1 — Mock mode responds to the user's input
+**What was done** (`core/mock_provider.py`, `core/utils.py`)
+- The module count now follows the duration: 1 week → 2 modules, 2 → 3, 3–4 → 4, 5–6 → 5, 7+ → 6.
+- The roadmap is split across the real duration (e.g. "Weeks 1-2: …", or "Days 1-3: …" for a 1-week course).
+- Learning-objective verbs get stronger with difficulty (Beginner "Describe/Identify" → Advanced "Analyze/Design/Critically evaluate").
+- The topic, audience and goal appear in module titles, lessons, case studies and questions.
+- 2 lessons per module, 1 MCQ plus 1 short quiz per module, then an assignment and a capstone project. The correct MCQ letter rotates instead of always being "A".
+
+**Verified:** parametrized tests for 1, 2, 4, 6 and 12 weeks, plus a topic/difficulty test.
+
+## ✅ Step 2 — Make the Quality agent meaningful
+**What was done** (`agents/quality_agent.py`, `core/schemas.py`)
+- 10 explainable checks: module objectives, module count vs duration, lesson coverage, lesson completeness (notes/examples/exercises), unique titles, answers present, objective mapping, every objective assessed, valid MCQ answers, rubrics for assignments and projects.
+- New `ValidationCheck(name, passed, detail, component)` model. Score is now `passed / total × 100` (the old formula was arbitrary).
+- Each failed check names the component to regenerate, which Step 3 uses.
+
+**Verified:** four tests, each breaking one aspect of a valid package and asserting the right check fails.
+
+## ✅ Step 3 — Make the feedback loop real
+**What was done** (`core/orchestrator.py`, `agents/base.py`, agents, mock provider)
+- Validator issues are passed back to the agents as a "Fix these problems" prompt section.
+- Only the failing component is regenerated. A curriculum failure also regenerates lessons and assessments, because they depend on it.
+- The loop now runs for all providers (previously Gemini only) and records `attempts` and `resolved_issues`.
+- The mock provider has an `inject_fault` mode. The UI exposes it as **"Demonstrate self-correction"**, so the loop can be shown live: FAIL (70%) → regeneration → PASS (100%).
+
+**Verified:** `test_feedback_loop_recovers_from_injected_fault` (2 attempts, 3 issues resolved).
+
+## ✅ Step 4 — Harden Gemini mode
+**What was done** (`core/llm_provider.py`, `core/orchestrator.py`, `app.py`)
+- `GeminiProvider` retries up to 3 times with exponential backoff, covering transient errors and malformed JSON.
+- New `ProviderError` with friendly messages for quota/rate limit, bad key, network/timeout and schema mismatch. The raw cause goes into a "Technical details" expander.
+- `generate_course()` falls back to demo output with a visible warning if Gemini fails or no key is set. The form shows whether a key is detected.
+- The UI has a last-resort handler, so users never see a stack trace.
+
+**Verified:** retry-then-succeed test with a fake client, fallback test, error-translation tests. Also checked end-to-end in the UI without a key.
+
+## ✅ Step 5 — Fix and enrich the exports
+**What was done** (`core/exporter.py`)
+- Markdown and PDF now include prerequisites, roadmap, examples, exercises, case studies, MCQ options, answers and rubrics.
+- The PDF renders Markdown properly (headings, bullets, bold) instead of showing raw `###`/`**`, escapes special characters (`& < >` no longer crash ReportLab), and has a cover block and page numbers.
+- `Lessons.md` now contains only lessons (it was a duplicate), and there is a new `Answer_Key.md`. MCQ answers show the letter and the option text.
+- The ZIP is built once per generated course and cached in the session instead of on every Streamlit rerun. PDF and Markdown also have their own download buttons.
+
+**Verified:** ZIP-contents test and a PDF test with `R&D <Chemistry> "Basics"` plus HTML-like input.
+
+## ✅ Step 6 — Show real progress while generating
+**What was done** (`core/orchestrator.py`, `app.py`)
+- `generate(..., on_step)` reports each agent as running/done with a detail ("4 modules", "FAIL (70%)", "Attempt 2: fixing …").
+- The UI streams these into the `st.status` box, and the box collapses on completion.
+- After generation the page smooth-scrolls to the "Course workspace" (best-effort, cosmetic).
+
+## ✅ Step 7 — Upgrade the results workspace
+**What was done** (`app.py`)
+- **Validation tab:** a ✓/✗ checklist with failure details, a score pill ("PASS · 100% — 10/10 checks passed"), the self-correction history, and raw JSON in a collapsed expander.
+- **Curriculum tab:** prerequisites list and a visual roadmap timeline.
+- **Lessons tab:** case-study callout. **Assessments tab:** MCQ options with the correct one highlighted.
+- Validation metric shows status plus score. A **New course** button resets the workspace. PDF and Markdown downloads sit beside the ZIP.
+- Everything reuses the existing design tokens and card styles.
+
+**Verified:** driven through Streamlit's `AppTest` (navigation, empty-form error, generate, Gemini fallback, reset) with no exceptions.
+
+## ✅ Step 8 — Clean the repository and dependencies
+**What was done**
+- Removed all tracked `__pycache__` files and the stray placeholder `files` entries from git (`.gitignore` already excludes caches).
+- Removed unused `langgraph`. `pytest` moved to the new `requirements-dev.txt`.
+- `project_manifest.json` updated to v0.2.0 with accurate exports.
+- Font stack now falls back to system fonts, so the UI still looks right if Google Fonts cannot load.
+
+## ✅ Step 9 — Expand tests
+**What was done** (`tests/test_pipeline.py`): grew from 2 to **23 passing tests**, covering duration scaling, topic/difficulty adaptation, each quality check, the feedback loop, the ZIP and PDF exports, special characters, Gemini key handling, retries, error translation and fallback.
+Run with `pip install -r requirements-dev.txt && pytest -q`.
+
+## 🟡 Step 10 — Final documentation, deployment and demo polish
+**Done**
+- README: badges, highlights, sample-output link, updated structure, "Limitations & roadmap", instructor-review disclaimer (also shown in the Export tab).
+- `docs/ARCHITECTURE.md` (10 checks, feedback loop, reliability), `docs/USER_GUIDE.md` and `docs/DEMO_SCRIPT.md` rewritten for the new behaviour.
+- `examples/Sample_Course_Package.zip` is a pre-generated fallback for the demo (`.gitignore` exception added).
+
+**Remaining (manual, needs the owner)**
+- 🔲 Deploy to Streamlit Community Cloud and paste the live URL into the README placeholder.
+- 🔲 Capture 2–3 screenshots or a short GIF (landing → generate → results → export) and add them to the README.
+- 🔲 Rehearse `docs/DEMO_SCRIPT.md` once end-to-end on the deployed build, ideally with a real Gemini key to confirm AI-written output (Gemini mode could not be tested live without a key; only its retry, error and fallback paths are tested).
+
+---
+
+## Out of scope (kept simple on purpose)
+Accounts, databases, LMS integration, multi-LLM orchestration, analytics dashboards and multilingual support.
+
+## Known notes
+- `st.components.v1.html` (used only for the cosmetic auto-scroll) is deprecated in recent Streamlit versions. It is wrapped in a try/except, so the app still works if it is removed; only the scroll would be lost.

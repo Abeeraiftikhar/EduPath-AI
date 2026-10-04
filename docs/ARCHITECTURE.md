@@ -2,30 +2,63 @@
 
 ## Pipeline
 
-User input is validated into `CourseRequest`.
+User input is validated into `CourseRequest`. `generate_course()` (the UI's safe entry point) wraps
+`CourseOrchestrator`, which runs:
 
-`CourseOrchestrator` runs:
+1. **Curriculum Architect** - modules, objectives, prerequisites, roadmap
+2. **Content Creator** - lesson notes, examples, exercises, case studies
+3. **Assessment Agent** - MCQs, quizzes, assignments, project, answer keys, rubrics
+4. **Quality & Validation Agent** - rule-based checks (below)
 
-1. Curriculum Agent
-2. Content Agent
-3. Assessment Agent
-4. Quality Agent
+The orchestrator reports each step through an `on_step(agent, state, detail)` callback, which the UI
+renders as live progress.
 
-The Quality Agent checks:
-- module presence
-- learning objectives
-- lesson coverage
-- assessment answers
-- assessment-to-objective mapping
-- duplicate lesson titles
+## Quality checks (10)
 
-A failed validation can trigger one controlled regeneration pass when Gemini mode is active.
+| Check | Regenerates |
+|---|---|
+| Modules exist and each has learning objectives | curriculum |
+| Module count fits the course duration | curriculum |
+| Every module has lessons | lessons |
+| Every lesson has notes, examples and exercises | lessons |
+| Lesson titles are unique | lessons |
+| Assessments exist and include answers | assessments |
+| Assessments map to real learning objectives | assessments |
+| Every learning objective is assessed | assessments |
+| MCQ answers are valid (letter within the options) | assessments |
+| Assignments and projects have rubrics | assessments |
+
+`score = passed checks / total checks`. Each failed check carries a human-readable `detail`.
+
+## Feedback loop
+
+```text
+generate -> validate -- PASS --> export
+                |
+              FAIL: issues become "Fix these problems" feedback
+                    -> regenerate ONLY the failing component(s)
+                       (curriculum failure also regenerates lessons + assessments)
+                    -> validate again (up to MAX_VALIDATION_RETRIES, default 1)
+```
+
+The loop runs for every provider. `ValidationReport.attempts` and `resolved_issues` record what was fixed.
+The "Demonstrate self-correction" option in demo mode injects deliberate faults on the first attempt so
+the loop can be shown live.
+
+## Reliability
+
+- `GeminiProvider` retries up to 3 times with backoff and translates SDK errors into friendly
+  `ProviderError` messages (quota, bad key, network, malformed JSON).
+- If Gemini fails, `generate_course()` falls back to demo output and sets `CoursePackage.notice`.
+- The UI never shows a raw stack trace; technical details sit in an expander.
 
 ## Separation of concerns
 
-- `agents/` contains agent responsibilities.
-- `core/schemas.py` defines structured contracts.
-- `core/llm_provider.py` isolates Gemini.
-- `core/mock_provider.py` enables development without external services.
-- `core/exporter.py` handles downloadable artifacts.
-- `app.py` contains the presentation layer.
+- `agents/` - agent responsibilities (`base.py` builds the feedback prompt section).
+- `core/schemas.py` - structured contracts (Pydantic).
+- `core/llm_provider.py` - isolates Gemini, retries and error translation.
+- `core/mock_provider.py` - deterministic, input-aware provider that needs no external services.
+- `core/orchestrator.py` - pipeline, progress callbacks, feedback loop, fallback.
+- `core/exporter.py` - Markdown, PDF and ZIP builders (built once per course and cached in the session).
+- `core/utils.py` - duration parsing and MCQ answer helpers.
+- `app.py` - presentation layer.

@@ -47,12 +47,22 @@ class AssessmentItem(BaseModel):
 class AssessmentPackage(BaseModel):
     items: List[AssessmentItem]
 
+class ValidationCheck(BaseModel):
+    """One explainable quality check. `component` tells the orchestrator what to regenerate."""
+    name: str
+    passed: bool
+    detail: str = ""
+    component: Literal["curriculum", "lessons", "assessments"] = "curriculum"
+
 class ValidationReport(BaseModel):
     status: Literal["PASS", "FAIL"]
     score: float = 0.0
     issues: List[str] = Field(default_factory=list)
     feedback: List[str] = Field(default_factory=list)
     checked_items: List[str] = Field(default_factory=list)
+    checks: List[ValidationCheck] = Field(default_factory=list)
+    attempts: int = 1
+    resolved_issues: List[str] = Field(default_factory=list)
 
 class CoursePackage(BaseModel):
     request: CourseRequest
@@ -60,3 +70,6 @@ class CoursePackage(BaseModel):
     lessons: LessonPackage
     assessments: AssessmentPackage
     validation: ValidationReport
+    provider_used: str = "mock"
+    notice: Optional[str] = None
+    notice_details: Optional[str] = None

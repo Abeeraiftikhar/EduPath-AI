@@ -4,6 +4,18 @@
 
 EduPath-AI transforms a simple learning request into a structured, validated and downloadable course package using specialized agents.
 
+![Python](https://img.shields.io/badge/python-3.10%2B-blue) ![Streamlit](https://img.shields.io/badge/UI-Streamlit-red) ![License](https://img.shields.io/badge/license-see%20LICENSE-green)
+
+> **Live demo:** _add your Streamlit Community Cloud URL here after deploying_ · **Sample output:** [examples/Sample_Course_Package.zip](examples/Sample_Course_Package.zip)
+
+## Highlights
+
+- **Input-aware generation** - module count, roadmap and objective wording adapt to duration, difficulty and topic (even in demo mode).
+- **10-check Quality agent** with an explainable score, and a **real feedback loop** that sends issues back to only the failing agent.
+- **Live agent progress**, per-check validation checklist, roadmap timeline, highlighted MCQ answers.
+- **Resilient Gemini mode**: retries, friendly errors, automatic fallback to demo output.
+- **Complete exports**: PDF (with page numbers), Markdown, `Lessons.md`, `Answer_Key.md`, JSON, ZIP.
+
 ### Input
 - Topic
 - Target audience
@@ -61,7 +73,7 @@ python -m venv .venv
 # macOS/Linux
 source .venv/bin/activate
 
-pip install -r requirements.txt
+pip install -r requirements.txt      # use requirements-dev.txt to also get pytest
 streamlit run app.py
 ```
 
@@ -93,43 +105,31 @@ For Streamlit Community Cloud:
 
 ## Demo scenario
 
-Use:
-- Topic: Python for Bioinformatics
-- Audience: Undergraduate
-- Duration: 4 Weeks
-- Difficulty: Beginner
-- Goal: Build practical Python skills for biological sequence analysis.
-
-Generate the package, inspect the validation result, then download the ZIP.
+Use **Try a sample profile**, pick Duration **4 Weeks**, tick **Demonstrate self-correction**, and generate.
+Watch the Quality agent fail the first attempt and the agents fix it, then inspect the Validation tab and
+download the ZIP. The full walkthrough is in [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md).
 
 ## Project structure
 
 ```text
 EduPath-AI/
-├── app.py
-├── agents/
-│   ├── curriculum_agent.py
-│   ├── content_agent.py
-│   ├── assessment_agent.py
-│   └── quality_agent.py
-├── core/
-│   ├── config.py
-│   ├── schemas.py
-│   ├── llm_provider.py
-│   ├── mock_provider.py
-│   ├── orchestrator.py
-│   └── exporter.py
-├── tests/
-│   └── test_pipeline.py
-├── .streamlit/config.toml
-├── .env.example
-├── .gitignore
-├── requirements.txt
-└── README.md
+├── app.py                      # Streamlit UI
+├── agents/                     # curriculum, content, assessment, quality (+ base.py feedback prompt)
+├── core/                       # schemas, orchestrator, providers, exporter, utils, config
+├── tests/test_pipeline.py      # 23 tests: pipeline, quality checks, feedback loop, exports, Gemini handling
+├── examples/                   # pre-generated sample package
+├── docs/                       # architecture, user guide, demo script, scope, handoff
+├── requirements.txt / requirements-dev.txt
+└── .env.example
 ```
+
+## Limitations & roadmap
+
+- Gemini output quality depends on the model; the Quality agent checks structure and alignment, not factual accuracy.
+  AI-generated content should be reviewed by an instructor before use.
+- The PDF uses a standard Latin font; non-Latin scripts need an embedded font.
+- Future extensions: LMS integration, multilingual support, progress tracking, local LLM mode, instructor dashboards.
 
 ## Scope discipline
 
-The project intentionally does not make accounts, email delivery, or user-supplied API keys mandatory. It is designed for zero-cost hackathon execution using free-tier APIs and open-source technologies.
-
-Future extensions can include LMS integration, student progress tracking, personalized paths, multilingual support, local LLM mode, instructor dashboards and analytics.
+The project intentionally does not require accounts, email delivery, or user-supplied API keys. It is designed for zero-cost hackathon execution using free-tier APIs and open-source technologies.

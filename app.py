@@ -3,11 +3,13 @@ import html
 import streamlit as st
 from dotenv import load_dotenv
 
-from core.orchestrator import CourseOrchestrator
-from core.config import settings
-from core.exporter import build_course_zip
-
 load_dotenv()
+
+from core.orchestrator import generate_course  # noqa: E402  (after load_dotenv so settings see .env)
+from core.llm_provider import ProviderError  # noqa: E402
+from core.config import settings  # noqa: E402
+from core.exporter import build_course_zip, build_markdown, build_pdf  # noqa: E402
+from core.utils import mcq_answer_index  # noqa: E402
 
 st.set_page_config(
     page_title="EduPath-AI — AI-Powered Course Generator",
@@ -38,7 +40,7 @@ st.markdown("""
 }
 
 html, body, [class*="css"] {
-    font-family:'DM Sans', sans-serif;
+    font-family:'DM Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
 
 .stApp {
@@ -264,6 +266,33 @@ div.stButton > button[kind="secondary"]:hover {
 .metric-label { color:var(--muted); font-size:12px; }
 .metric-value { color:var(--blue-deep); font-size:22px; font-weight:700; }
 
+.check-row {
+    display:flex; gap:10px; align-items:flex-start;
+    padding:10px 14px; border:1px solid var(--border); border-radius:12px;
+    background:white; margin-bottom:8px; font-size:14px;
+}
+.check-row .mark { font-weight:700; width:18px; flex:none; }
+.check-row.ok .mark { color:var(--success); }
+.check-row.bad { border-color:#FECACA; background:#FEF2F2; }
+.check-row.bad .mark { color:#DC2626; }
+.check-detail { color:#B91C1C; font-size:13px; margin-top:2px; }
+.score-pill {
+    display:inline-block; padding:6px 14px; border-radius:20px; font-weight:700;
+    font-size:14px; background:#ECFDF5; color:var(--success);
+}
+.score-pill.bad { background:#FEF2F2; color:#DC2626; }
+.timeline { border-left:2px solid #CFE0FF; margin:8px 0 8px 8px; padding-left:18px; }
+.timeline-item { position:relative; padding:4px 0 12px; color:#334155; }
+.timeline-item::before {
+    content:""; position:absolute; left:-25px; top:10px; width:10px; height:10px;
+    border-radius:50%; background:var(--blue);
+}
+.opt { padding:7px 12px; border:1px solid var(--border); border-radius:10px; margin:5px 0; background:white; }
+.opt.correct { border-color:#6EE7B7; background:#ECFDF5; color:#065F46; font-weight:600; }
+.type-chip {
+    display:inline-block; padding:2px 9px; border-radius:12px; background:var(--blue-soft);
+    color:var(--blue); font-size:11px; font-weight:700; letter-spacing:.5px; margin-right:6px;
+}
 .footer {
     text-align:center;
     color:#94A3B8;
@@ -287,9 +316,33 @@ def init_state():
     st.session_state.setdefault("show_generator", False)
     st.session_state.setdefault("sample", False)
     st.session_state.setdefault("view", "discover")  # discover | announcement | how
+    st.session_state.setdefault("exports", None)     # cached {"md", "pdf", "zip"} for the current result
+    st.session_state.setdefault("scroll_to_results", False)
 
 
 init_state()
+
+
+SCROLL_JS = ("<script>const el=window.parent.document.getElementById('workspace');"
+             "if(el){el.scrollIntoView({behavior:'smooth',block:'start'});}</script>")
+
+
+def scroll_to_workspace():
+    """Best-effort smooth scroll to the results. Purely cosmetic, so any failure is ignored."""
+    try:
+        import streamlit.components.v1 as components
+        components.html(SCROLL_JS, height=0)
+    except Exception:
+        pass
+
+
+def reset_course():
+    """Clear the generated course and reopen an empty form."""
+    st.session_state.result = None
+    st.session_state.exports = None
+    st.session_state.sample = False
+    st.session_state.show_generator = True
+    st.session_state.view = "discover"
 
 
 def set_view(view, generator=None, sample=None):
@@ -512,36 +565,78 @@ if st.session_state.show_generator:
             difficulty = st.selectbox("Difficulty", ["Beginner", "Intermediate", "Advanced"], index=1 if sample else 0)
             goal = st.text_area("Learning goal", value="Build practical Python skills for biological sequence analysis." if sample else "", height=112)
             mode = st.radio("Generation mode", ["Demo / Mock — no API key", "Gemini API"], horizontal=True)
+            if settings.gemini_configured:
+                st.caption("Gemini API key detected. If Gemini is unavailable, demo output is used instead.")
+            else:
+                st.caption("No GEMINI_API_KEY configured — Gemini mode will fall back to demo output.")
+            demo_loop = st.checkbox(
+                "Demonstrate self-correction (demo mode)",
+                help="The first attempt is deliberately flawed so you can watch the Quality agent catch it and the agents fix it.",
+            )
         generate = st.form_submit_button("Generate Course", type="primary", use_container_width=True)
 
     if generate:
         if not topic.strip() or not audience.strip() or not goal.strip():
             st.error("Please complete Topic, Target audience and Learning goal.")
         else:
+            provider = "gemini" if mode.startswith("Gemini") else "mock"
             try:
                 with st.status("EduPath-AI is coordinating the agents...", expanded=True) as status:
-                    provider = "gemini" if mode.startswith("Gemini") else "mock"
-                    orchestrator = CourseOrchestrator(provider=provider)
-                    new_result = orchestrator.generate(
-                        topic.strip(), audience.strip(), duration,
-                        difficulty, goal.strip()
+                    def on_step(agent, state, detail):
+                        if state == "running":
+                            st.write(f"⏳ **{agent}** working… {detail}")
+                        else:
+                            st.write(f"✅ **{agent}** — {detail}")
+
+                    new_result = generate_course(
+                        provider, topic.strip(), audience.strip(), duration,
+                        difficulty, goal.strip(), on_step=on_step,
+                        inject_fault=demo_loop and provider == "mock",
                     )
-                    status.update(label="Course package generated", state="complete")
+                    # Build the export files once per course, not on every Streamlit rerun.
+                    md, pdf = build_markdown(new_result), build_pdf(new_result)
+                    st.session_state.exports = {
+                        "md": md, "pdf": pdf, "zip": build_course_zip(new_result, md, pdf),
+                    }
+                    status.update(label="Course package generated", state="complete", expanded=False)
                 st.session_state.result = new_result
+                st.session_state.scroll_to_results = True
                 st.rerun()  # refresh so the preview card shows the new course
-            except Exception as exc:
-                st.error(f"Generation failed: {exc}")
+            except ProviderError as exc:
+                st.error(str(exc))
+                if exc.details:
+                    with st.expander("Technical details"):
+                        st.code(exc.details)
+            except Exception as exc:  # last resort: never show a raw stack trace to the user
+                st.error("Something went wrong while generating the course. Please try again.")
+                with st.expander("Technical details"):
+                    st.code(f"{type(exc).__name__}: {exc}")
 
 result = st.session_state.result
 
 if result:
     st.divider()
-    st.markdown('<div class="section-title">Course workspace</div>', unsafe_allow_html=True)
+    st.markdown('<div id="workspace"></div>', unsafe_allow_html=True)
+    if st.session_state.scroll_to_results:
+        st.session_state.scroll_to_results = False
+        scroll_to_workspace()
+
+    head_l, head_r = st.columns([3, 1])
+    with head_l:
+        st.markdown('<div class="section-title">Course workspace</div>', unsafe_allow_html=True)
+    with head_r:
+        st.button("↺ New course", key="new_course", on_click=reset_course, use_container_width=True)
+
+    if result.notice:
+        st.warning(result.notice)
+        if result.notice_details:
+            with st.expander("Technical details"):
+                st.code(result.notice_details)
 
     validation = result.validation
     cols = st.columns(4)
     metrics = [
-        ("Validation", validation.status),
+        ("Validation", f"{validation.status} · {validation.score:.0f}%"),
         ("Modules", len(result.curriculum.modules)),
         ("Lessons", len(result.lessons.lessons)),
         ("Assessments", len(result.assessments.items)),
@@ -554,18 +649,29 @@ if result:
                 unsafe_allow_html=True
             )
 
+    st.write("")
     if validation.status == "PASS":
-        st.success("Quality & Validation Agent: PASS — the package is ready for export.")
+        extra = f" after {validation.attempts} attempts (self-corrected)" if validation.attempts > 1 else ""
+        st.success(f"Quality & Validation Agent: PASS{extra} — the package is ready for export.")
     else:
-        st.error("Quality & Validation Agent: FAIL")
-        for issue in validation.issues:
-            st.write("•", issue)
+        st.error("Quality & Validation Agent: FAIL — see the Validation tab for details.")
 
     tabs = st.tabs(["Curriculum", "Lessons", "Assessments", "Validation", "Export"])
 
     with tabs[0]:
         st.subheader(result.curriculum.title)
         st.write(result.curriculum.description)
+        if result.curriculum.prerequisites:
+            st.markdown("**Prerequisites**")
+            for item in result.curriculum.prerequisites:
+                st.write("•", item)
+        if result.curriculum.roadmap:
+            st.markdown("**Roadmap**")
+            st.markdown(
+                '<div class="timeline">' + "".join(
+                    f'<div class="timeline-item">{html.escape(step)}</div>' for step in result.curriculum.roadmap
+                ) + "</div>", unsafe_allow_html=True)
+        st.markdown("**Modules**")
         for module in result.curriculum.modules:
             with st.expander(f"Module {module.number}: {module.title}"):
                 st.write(module.summary)
@@ -583,33 +689,66 @@ if result:
                 st.write("**Exercises**")
                 for x in lesson.exercises:
                     st.write("•", x)
+                if lesson.case_study:
+                    st.info(f"**Case study:** {lesson.case_study}")
 
     with tabs[2]:
         for item in result.assessments.items:
             with st.expander(f"{item.type.upper()} — {item.title}"):
                 st.write(item.prompt)
-                if item.options:
-                    for i, option in enumerate(item.options):
-                        st.write(f"{chr(65+i)}. {option}")
-                st.write("**Answer:**", item.answer)
+                correct = mcq_answer_index(item.answer, item.options) if item.options else -1
+                for i, option in enumerate(item.options):
+                    cls = "opt correct" if i == correct else "opt"
+                    mark = " ✓" if i == correct else ""
+                    st.markdown(f'<div class="{cls}">{chr(65+i)}. {html.escape(option)}{mark}</div>', unsafe_allow_html=True)
+                if not item.options:
+                    st.write("**Answer:**", item.answer)
                 st.write("**Mapped objective:**", item.learning_objective)
                 if item.rubric:
                     st.write("**Rubric:**", item.rubric)
 
     with tabs[3]:
-        st.json(validation.model_dump())
+        pill_cls = "score-pill" if validation.status == "PASS" else "score-pill bad"
+        passed = sum(c.passed for c in validation.checks)
+        st.markdown(
+            f'<span class="{pill_cls}">{validation.status} · {validation.score:.0f}% — '
+            f'{passed}/{len(validation.checks)} checks passed</span>', unsafe_allow_html=True)
+        st.write("")
+        for check in validation.checks:
+            ok = check.passed
+            detail = f'<div class="check-detail">{html.escape(check.detail)}</div>' if check.detail else ""
+            st.markdown(
+                f'<div class="check-row {"ok" if ok else "bad"}"><span class="mark">{"✓" if ok else "✗"}</span>'
+                f'<div>{html.escape(check.name)}{detail}</div></div>', unsafe_allow_html=True)
+        if validation.attempts > 1:
+            st.markdown(f"**Feedback loop:** the package passed after **{validation.attempts} attempts**. "
+                        "Problems found and fixed automatically:")
+            for issue in validation.resolved_issues:
+                st.write("•", issue)
+        st.markdown("**Feedback**")
+        for line in validation.feedback:
+            st.write("•", line)
+        with st.expander("Raw validation report (JSON)"):
+            st.json(validation.model_dump())
 
     with tabs[4]:
-        st.write("Export the complete validated course package.")
-        package = build_course_zip(result)
-        st.download_button(
-            "Download Course_Package.zip",
-            data=package,
-            file_name="Course_Package.zip",
-            mime="application/zip",
-            type="primary",
-            use_container_width=True,
-        )
+        st.write("Export the complete validated course package, or download a single file.")
+        exports = st.session_state.exports
+        if exports:
+            st.download_button(
+                "Download Course_Package.zip", data=exports["zip"], file_name="Course_Package.zip",
+                mime="application/zip", type="primary", use_container_width=True,
+            )
+            d1, d2 = st.columns(2)
+            with d1:
+                st.download_button("Download PDF", data=exports["pdf"], file_name="Complete_Course.pdf",
+                                   mime="application/pdf", use_container_width=True)
+            with d2:
+                st.download_button("Download Markdown", data=exports["md"], file_name="Complete_Course.md",
+                                   mime="text/markdown", use_container_width=True)
+            st.caption("The ZIP contains: Complete_Course (PDF + MD), Lessons.md, Answer_Key.md, "
+                       "Curriculum.json, Assessments.json and Validation_Report.json.")
+        st.caption("AI-generated content should be reviewed by an instructor before classroom use.")
 
 # -----------------------------
 # How it works (bottom of Discover page)
