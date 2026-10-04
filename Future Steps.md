@@ -2,7 +2,7 @@
 
 Work is tracked on the **`waleed-works`** branch. Each step below is marked ✅ Done (with a short explanation of what was built and verified) or 🔲 Remaining (manual actions that need the owner).
 
-**Progress: 9 of 10 steps fully done, Step 10 is done except for 3 manual items (deploy, screenshots, rehearsal).**
+**Progress: 9 of 10 steps fully done, plus the bonus round. Step 10 is done except for 3 manual items (deploy, screenshots, rehearsal). Gemini mode has now been tested live.**
 
 ## Status at a glance
 
@@ -102,7 +102,22 @@ Run with `pip install -r requirements-dev.txt && pytest -q`.
 **Remaining (manual, needs the owner)**
 - 🔲 Deploy to Streamlit Community Cloud and paste the live URL into the README placeholder.
 - 🔲 Capture 2–3 screenshots or a short GIF (landing → generate → results → export) and add them to the README.
-- 🔲 Rehearse `docs/DEMO_SCRIPT.md` once end-to-end on the deployed build, ideally with a real Gemini key to confirm AI-written output (Gemini mode could not be tested live without a key; only its retry, error and fallback paths are tested).
+- 🔲 Rehearse `docs/DEMO_SCRIPT.md` once end-to-end on the deployed build, (Gemini output was already confirmed live during the bonus round.)
+
+---
+
+## ✅ Bonus round — Live Gemini, dark mode, animations, rotating preview
+**What was done**
+- **Live Gemini:** the key is stored in `.env` (git-ignored, never committed). Real generation was verified end to end (`provider_used: gemini`, 10/10 checks). Found and fixed three real-world issues along the way:
+  - the old default model `gemini-2.5-flash` is retired for new keys, so the default is now the self-updating alias `gemini-flash-latest`;
+  - the free tier allows about 5 requests/min, so retries now honor Gemini's "retry in Ns" hint;
+  - models can return 503 under load, so retries rotate through fallback models (`GEMINI_FALLBACK_MODELS`).
+  The form defaults to Gemini when a key is present.
+- **Dark mode:** a 🌙 Dark / ☀️ Light toggle in the nav. The CSS was moved to `assets/theme.css` using design tokens, plus `assets/theme_dark.css`, which also restyles Streamlit's own inputs, tabs, expanders and alerts.
+- **Animations (sober):** staggered fade-ups on the hero, header and cards, hover lifts, button feedback, tab fades and staggered checklist rows. All are disabled automatically when the OS asks for reduced motion.
+- **Rotating preview card:** 4 sample courses (topic · audience · difficulty · duration, objectives, modules, quality check, learning goal) crossfade every 4.5 seconds with progress dots, using pure CSS with no reruns. Once a real course is generated, the card shows that course instead.
+
+**Verified:** real-browser (Edge) screenshots in light and dark: rotation, form, results, validation checklist, and a full Gemini run through the UI.
 
 ---
 
@@ -110,4 +125,5 @@ Run with `pip install -r requirements-dev.txt && pytest -q`.
 Accounts, databases, LMS integration, multi-LLM orchestration, analytics dashboards and multilingual support.
 
 ## Known notes
+- Never commit `.env` (it holds the API key). On Streamlit Cloud, put `GEMINI_API_KEY` under App Settings → Secrets.
 - `st.components.v1.html` (used only for the cosmetic auto-scroll) is deprecated in recent Streamlit versions. It is wrapped in a try/except, so the app still works if it is removed; only the scroll would be lost.

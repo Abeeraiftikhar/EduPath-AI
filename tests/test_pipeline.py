@@ -185,7 +185,7 @@ def test_gemini_provider_retries_then_succeeds(monkeypatch):
 
     provider = GeminiProvider.__new__(GeminiProvider)
     provider.client = type("C", (), {"models": FakeModels()})()
-    provider.model = "fake"
+    provider.models = ["fake", "fake-2"]
     monkeypatch.setattr("core.llm_provider.time.sleep", lambda s: None)
     assert provider.generate_structured("p", LessonPackage).lessons == []
     assert FakeModels.calls == 3

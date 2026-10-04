@@ -13,7 +13,8 @@ EduPath-AI transforms a simple learning request into a structured, validated and
 - **Input-aware generation** - module count, roadmap and objective wording adapt to duration, difficulty and topic (even in demo mode).
 - **10-check Quality agent** with an explainable score, and a **real feedback loop** that sends issues back to only the failing agent.
 - **Live agent progress**, per-check validation checklist, roadmap timeline, highlighted MCQ answers.
-- **Resilient Gemini mode**: retries, friendly errors, automatic fallback to demo output.
+- **Resilient Gemini mode**: retries that honor rate-limit hints, model fallbacks, friendly errors, automatic fallback to demo output.
+- **Dark mode**, sober CSS animations (respecting reduced-motion) and a rotating sample-course preview.
 - **Complete exports**: PDF (with page numbers), Markdown, `Lessons.md`, `Answer_Key.md`, JSON, ZIP.
 
 ### Input

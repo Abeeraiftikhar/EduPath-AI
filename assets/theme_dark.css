@@ -1,0 +1,69 @@
+/* Dark mode: redefines the design tokens, then fixes Streamlit's own widgets, which ignore them. */
+:root {
+    --blue:#3B82F6;
+    --blue-dark:#2563EB;
+    --blue-deep:#DBEAFE;
+    --blue-soft:#1B2A4A;
+    --text:#E6EDF7;
+    --text-2:#CBD5E1;
+    --muted:#9AA9BF;
+    --faint:#7F90A8;
+    --border:#243049;
+    --border-blue:#2E4170;
+    --surface:#111B30;
+    --surface-2:#16243F;
+    --bg-a:#0A101D;
+    --bg-b:#0D1526;
+    --shadow:rgba(0,0,0,.45);
+    --shadow-soft:rgba(0,0,0,.3);
+    --success:#34D399;
+    --success-bg:#0F2A24;
+    --danger:#F87171;
+    --danger-bg:#2A1518;
+    --danger-border:#5B2429;
+    --input-border:#2A3A58;
+}
+
+.stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"] { color:var(--text); }
+[data-testid="stMarkdownContainer"] p, [data-testid="stMarkdownContainer"] li,
+[data-testid="stMarkdownContainer"] h1, [data-testid="stMarkdownContainer"] h2,
+[data-testid="stMarkdownContainer"] h3, [data-testid="stMarkdownContainer"] h4,
+[data-testid="stWidgetLabel"] p, .stApp label { color:var(--text); }
+[data-testid="stCaptionContainer"], [data-testid="stCaptionContainer"] p { color:var(--muted) !important; }
+.hero-title span, .check, .eyebrow, .announce-date, .step-num { color:var(--blue); }
+
+/* Inputs */
+.stTextInput input, .stTextArea textarea,
+.stSelectbox div[data-baseweb="select"] > div {
+    background:#0C1426 !important; color:var(--text) !important;
+}
+.stTextInput input::placeholder, .stTextArea textarea::placeholder { color:#6B7C95 !important; }
+div[data-baseweb="popover"] ul, div[data-baseweb="popover"] li, div[data-baseweb="menu"] {
+    background:var(--surface) !important; color:var(--text) !important;
+}
+div[data-baseweb="popover"] li:hover { background:var(--blue-soft) !important; }
+div[data-baseweb="select"] svg { fill:var(--muted); }
+
+/* Form wrapper, expanders, tabs */
+[data-testid="stForm"] { background:var(--surface); border-color:var(--border) !important; border-radius:16px; }
+[data-testid="stExpander"] details, [data-testid="stExpander"] { background:var(--surface); border-color:var(--border) !important; }
+[data-testid="stExpander"] summary:hover { background:var(--blue-soft); }
+button[data-baseweb="tab"] { color:var(--muted) !important; }
+button[data-baseweb="tab"][aria-selected="true"] { color:var(--blue) !important; }
+div[data-baseweb="tab-border"] { background:var(--border) !important; }
+
+/* Alerts, status, code, json */
+[data-testid="stAlert"] { background:var(--surface-2) !important; border:1px solid var(--border); }
+[data-testid="stAlert"] * { color:var(--text) !important; }
+[data-testid="stStatus"], [data-testid="stStatusWidget"], details[data-testid="stExpander"] { background:var(--surface); }
+[data-testid="stCode"], [data-testid="stJson"], pre { background:#0C1426 !important; color:var(--text) !important; }
+hr { border-color:var(--border) !important; }
+
+/* Buttons (primary stays blue) */
+div.stButton > button[kind="secondary"], div.stDownloadButton > button[kind="secondary"] {
+    background:var(--surface) !important; color:var(--text-2) !important; border-color:var(--border-blue) !important;
+}
+div.stButton > button[kind="secondary"]:hover, div.stDownloadButton > button[kind="secondary"]:hover {
+    background:var(--blue-soft) !important; color:#fff !important;
+}
+div.stFormSubmitButton > button[kind="primary"] { color:#fff !important; }

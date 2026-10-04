@@ -80,6 +80,8 @@ def generate_course(provider, topic, audience, duration, difficulty, learning_go
     except ProviderError as exc:
         if provider != "gemini":
             raise
+        if on_step:
+            on_step("Gemini", "done", "unavailable, switching to demo output")
         package = CourseOrchestrator("mock", inject_fault).generate(
             topic, audience, duration, difficulty, learning_goal, on_step)
         package.notice = f"Gemini unavailable ({exc}). Showing demo output instead."

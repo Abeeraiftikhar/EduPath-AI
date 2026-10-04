@@ -1,4 +1,5 @@
 import html
+from pathlib import Path
 
 import streamlit as st
 from dotenv import load_dotenv
@@ -19,293 +20,16 @@ st.set_page_config(
 )
 
 # -----------------------------
-# EduPath-AI visual system
+# EduPath-AI visual system (assets/theme.css + optional assets/theme_dark.css)
 # -----------------------------
-st.markdown("""
-<style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+ASSETS = Path(__file__).parent / "assets"
 
-:root {
-    --blue:#2563EB;
-    --blue-dark:#1D4ED8;
-    --blue-deep:#172554;
-    --blue-soft:#EFF6FF;
-    --blue-pale:#F8FBFF;
-    --text:#0F172A;
-    --muted:#64748B;
-    --border:#E2E8F0;
-    --white:#FFFFFF;
-    --success:#059669;
-    --warning:#D97706;
-}
 
-html, body, [class*="css"] {
-    font-family:'DM Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-}
-
-.stApp {
-    background:linear-gradient(180deg,#F8FBFF 0%,#FFFFFF 55%,#F8FBFF 100%);
-    color:var(--text);
-}
-
-#MainMenu, footer, header { visibility:hidden; }
-.block-container {
-    max-width:1180px;
-    padding:1.1rem 1.5rem 3rem;
-}
-
-/* Header */
-.edu-header {
-    background:rgba(255,255,255,.94);
-    border:1px solid var(--border);
-    border-radius:18px;
-    padding:14px 18px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    box-shadow:0 5px 22px rgba(37,99,235,.05);
-    margin-bottom:14px;
-}
-.brand {
-    display:flex;
-    align-items:center;
-    gap:12px;
-}
-.logo {
-    width:38px;
-    height:38px;
-    border-radius:12px;
-    background:linear-gradient(135deg,var(--blue),#60A5FA);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    color:white;
-    font-size:20px;
-    font-weight:700;
-}
-.brand-name {
-    font-size:22px;
-    font-weight:700;
-    color:var(--blue-deep);
-}
-.brand-sub {
-    margin-left:4px;
-    padding-left:14px;
-    border-left:1px solid var(--border);
-    color:var(--muted);
-    font-size:13px;
-}
-
-/* Hero */
-.hero-wrap {
-    padding:58px 0 35px;
-}
-.eyebrow {
-    color:var(--blue);
-    font-size:12px;
-    font-weight:700;
-    letter-spacing:3px;
-    text-transform:uppercase;
-    margin-bottom:18px;
-}
-.hero-title {
-    color:var(--text);
-    font-size:54px;
-    line-height:1.05;
-    letter-spacing:-2.3px;
-    font-weight:700;
-    margin:0;
-}
-.hero-title span { color:var(--blue); }
-.hero-copy {
-    color:#53657D;
-    font-size:18px;
-    line-height:1.65;
-    max-width:680px;
-    margin-top:22px;
-}
-.preview {
-    background:white;
-    border:1px solid #CFE0FF;
-    border-radius:22px;
-    padding:22px;
-    box-shadow:0 18px 45px rgba(37,99,235,.11);
-    margin-top:10px;
-}
-.preview-top {
-    color:#8AA0BC;
-    font-size:11px;
-    letter-spacing:2px;
-    font-weight:700;
-}
-.preview-title {
-    color:#183153;
-    font-size:23px;
-    font-weight:700;
-    margin-top:9px;
-}
-.preview-sub { color:#7890AE; font-size:13px; }
-.preview-line {
-    height:1px;
-    background:#E8EEF7;
-    margin:16px 0;
-}
-.preview-status {
-    display:flex;
-    justify-content:space-between;
-    color:#60748F;
-    font-size:13px;
-}
-.badge {
-    display:inline-block;
-    padding:6px 10px;
-    border-radius:20px;
-    background:#EFF6FF;
-    color:var(--blue);
-    font-size:11px;
-    font-weight:700;
-    white-space:nowrap;
-}
-.badge-done { background:#ECFDF5; color:#059669; }
-.next-step {
-    background:#F0F7FF;
-    border-radius:14px;
-    padding:15px;
-    margin-top:16px;
-}
-.next-label {
-    color:#6C87A8;
-    font-size:10px;
-    letter-spacing:1.5px;
-    font-weight:700;
-}
-.next-text { color:#49627F; font-size:13px; margin-top:5px; }
-
-/* Buttons */
-div.stButton > button,
-div.stDownloadButton > button,
-button[kind="primary"] {
-    border-radius:11px !important;
-    min-height:44px !important;
-    font-weight:600 !important;
-    border:1px solid #CFE0FF !important;
-}
-div.stButton > button[kind="primary"],
-div.stDownloadButton > button[kind="primary"],
-div.stFormSubmitButton > button[kind="primary"] {
-    background:var(--blue) !important;
-    color:white !important;
-}
-div.stButton > button[kind="primary"]:hover,
-div.stDownloadButton > button[kind="primary"]:hover,
-div.stFormSubmitButton > button[kind="primary"]:hover {
-    background:var(--blue-dark) !important;
-}
-div.stButton > button[kind="secondary"] {
-    background:white !important;
-    color:#475569 !important;
-}
-div.stButton > button[kind="secondary"]:hover {
-    background:var(--blue-soft) !important;
-    color:var(--blue) !important;
-}
-
-/* Feature strip */
-.feature-strip {
-    border-top:1px solid var(--border);
-    border-bottom:1px solid var(--border);
-    padding:22px 0;
-    margin:28px 0 45px;
-    display:flex;
-    gap:55px;
-    color:#60748F;
-    font-size:14px;
-}
-.feature { display:flex; gap:9px; align-items:center; }
-.check { color:var(--blue); font-weight:700; }
-
-/* Sections */
-.section-card {
-    background:white;
-    border:1px solid var(--border);
-    border-radius:20px;
-    padding:28px;
-    box-shadow:0 8px 28px rgba(15,23,42,.035);
-    margin-bottom:20px;
-}
-.section-title { font-size:27px; font-weight:700; color:var(--text); }
-.section-copy { color:var(--muted); line-height:1.6; }
-
-.announce-date {
-    color:var(--blue);
-    font-size:12px;
-    font-weight:700;
-    letter-spacing:1.5px;
-    text-transform:uppercase;
-}
-.announce-title { font-size:19px; font-weight:700; color:var(--text); margin:6px 0; }
-
-/* Streamlit form controls */
-.stTextInput input, .stTextArea textarea, .stSelectbox div[data-baseweb="select"] {
-    border-radius:11px !important;
-    border-color:#D7E1EF !important;
-}
-.stTextInput label, .stTextArea label, .stSelectbox label, .stRadio label {
-    color:#334155 !important;
-    font-weight:600 !important;
-}
-
-/* Results */
-.metric-card {
-    background:#fff;
-    border:1px solid var(--border);
-    border-radius:15px;
-    padding:15px;
-    text-align:center;
-}
-.metric-label { color:var(--muted); font-size:12px; }
-.metric-value { color:var(--blue-deep); font-size:22px; font-weight:700; }
-
-.check-row {
-    display:flex; gap:10px; align-items:flex-start;
-    padding:10px 14px; border:1px solid var(--border); border-radius:12px;
-    background:white; margin-bottom:8px; font-size:14px;
-}
-.check-row .mark { font-weight:700; width:18px; flex:none; }
-.check-row.ok .mark { color:var(--success); }
-.check-row.bad { border-color:#FECACA; background:#FEF2F2; }
-.check-row.bad .mark { color:#DC2626; }
-.check-detail { color:#B91C1C; font-size:13px; margin-top:2px; }
-.score-pill {
-    display:inline-block; padding:6px 14px; border-radius:20px; font-weight:700;
-    font-size:14px; background:#ECFDF5; color:var(--success);
-}
-.score-pill.bad { background:#FEF2F2; color:#DC2626; }
-.timeline { border-left:2px solid #CFE0FF; margin:8px 0 8px 8px; padding-left:18px; }
-.timeline-item { position:relative; padding:4px 0 12px; color:#334155; }
-.timeline-item::before {
-    content:""; position:absolute; left:-25px; top:10px; width:10px; height:10px;
-    border-radius:50%; background:var(--blue);
-}
-.opt { padding:7px 12px; border:1px solid var(--border); border-radius:10px; margin:5px 0; background:white; }
-.opt.correct { border-color:#6EE7B7; background:#ECFDF5; color:#065F46; font-weight:600; }
-.type-chip {
-    display:inline-block; padding:2px 9px; border-radius:12px; background:var(--blue-soft);
-    color:var(--blue); font-size:11px; font-weight:700; letter-spacing:.5px; margin-right:6px;
-}
-.footer {
-    text-align:center;
-    color:#94A3B8;
-    font-size:12px;
-    padding-top:28px;
-}
-@media (max-width: 850px) {
-    .hero-title { font-size:39px; }
-    .feature-strip { gap:18px; flex-wrap:wrap; }
-    .brand-sub { display:none; }
-}
-</style>
-""", unsafe_allow_html=True)
+def load_css(name: str) -> str:
+    try:
+        return (ASSETS / name).read_text(encoding="utf-8")
+    except OSError:
+        return ""  # the app still works unstyled if an asset is missing
 
 
 # -----------------------------
@@ -316,6 +40,7 @@ def init_state():
     st.session_state.setdefault("show_generator", False)
     st.session_state.setdefault("sample", False)
     st.session_state.setdefault("view", "discover")  # discover | announcement | how
+    st.session_state.setdefault("dark", False)
     st.session_state.setdefault("exports", None)     # cached {"md", "pdf", "zip"} for the current result
     st.session_state.setdefault("scroll_to_results", False)
 
@@ -334,6 +59,20 @@ def scroll_to_workspace():
         components.html(SCROLL_JS, height=0)
     except Exception:
         pass
+
+
+def toggle_theme():
+    st.session_state.dark = not st.session_state.dark
+
+
+def apply_theme():
+    css = load_css("theme.css")
+    if st.session_state.dark:
+        css += load_css("theme_dark.css")
+    st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
+
+
+apply_theme()
 
 
 def reset_course():
@@ -370,7 +109,7 @@ st.markdown(
 # Navigation (real buttons, state-driven)
 # -----------------------------
 view = st.session_state.view
-nav1, nav2, nav3, nav4 = st.columns([1.15, 1.4, 1.2, 1.3])
+nav1, nav2, nav3, nav4, nav5 = st.columns([1.15, 1.4, 1.2, 1.3, .9])
 with nav1:
     st.button(
         "Discover", key="nav_discover",
@@ -394,6 +133,11 @@ with nav4:
         "Tell us about yourself", key="nav_start",
         type="secondary",
         on_click=set_view, args=("discover", True, False), use_container_width=True,
+    )
+with nav5:
+    st.button(
+        "☀️ Light" if st.session_state.dark else "🌙 Dark", key="nav_theme",
+        type="secondary", on_click=toggle_theme, use_container_width=True,
     )
 
 
@@ -442,47 +186,69 @@ def render_how_it_works():
     for col, (num, title, desc) in zip(cols, workflow):
         with col:
             st.markdown(
-                f'<div class="section-card"><div style="color:#2563EB;font-weight:700;">{num}</div>'
-                f'<h3 style="margin:8px 0;color:#0F172A;">{title}</h3>'
+                f'<div class="section-card"><div class="step-num">{num}</div>'
+                f'<h3 style="margin:8px 0;">{title}</h3>'
                 f'<div class="section-copy">{desc}</div></div>',
                 unsafe_allow_html=True,
             )
 
 
+# Sample courses cycled in the empty preview card. Fields mirror the generator form.
+SAMPLE_COURSES = [
+    # (topic, audience, duration, difficulty, objectives, modules, learning goal)
+    ("Python for Bioinformatics", "Undergraduate students", "4 Weeks", "Beginner", 8, 4,
+     "Build practical Python skills for biological sequence analysis."),
+    ("Digital Marketing Fundamentals", "Small business owners", "6 Weeks", "Beginner", 10, 5,
+     "Plan and run a low-budget online campaign that brings in customers."),
+    ("Machine Learning with Scikit-learn", "Working software engineers", "8 Weeks", "Intermediate", 12, 6,
+     "Train, evaluate and ship a reliable prediction model."),
+    ("Scientific Writing for Researchers", "PhD researchers", "2 Weeks", "Advanced", 6, 3,
+     "Write a clear, well-structured journal manuscript."),
+]
+
+
+def sample_slide(topic, audience, duration, difficulty, objectives, modules, goal):
+    return (
+        '<div class="slide">'
+        '<div class="preview-head">'
+        f'<div class="preview-title">{html.escape(topic)}</div><span class="badge">Sample course</span></div>'
+        f'<div class="preview-sub">{html.escape(audience)} · {html.escape(difficulty)} · {html.escape(duration)}</div>'
+        '<div class="preview-line"></div>'
+        f'<div class="preview-status"><span>Learning objectives</span><b>{objectives} mapped</b></div>'
+        f'<div class="preview-status" style="margin-top:11px;"><span>Course modules</span><b>{modules} modules</b></div>'
+        '<div class="preview-status" style="margin-top:11px;"><span>Quality check</span><b class="pass">PASS</b></div>'
+        f'<div class="next-step"><div class="next-label">LEARNING GOAL</div><div class="next-text">{html.escape(goal)}</div></div>'
+        '</div>'
+    )
+
+
 def render_preview_card(result):
-    """Right-hand card. Shows placeholders until a course is generated, then real data."""
+    """Right-hand card: rotating sample courses until a course is generated, then the real data."""
     if result:
         title = html.escape(result.curriculum.title)
-        subtitle = html.escape(result.request.audience + " · " + result.request.difficulty)
+        subtitle = html.escape(f"{result.request.audience} · {result.request.difficulty} · {result.request.duration}")
         objectives = sum(len(m.learning_objectives) for m in result.curriculum.modules)
-        modules = len(result.curriculum.modules)
         status = result.validation.status
-        status_color = "#059669" if status == "PASS" else "#DC2626"
-        badge = '<span class="badge badge-done">Generated</span>'
-        next_text = "Review the course workspace below, then export the validated package."
-        obj_text, mod_text = f"{objectives} mapped", f"{modules} modules"
+        body = (
+            '<div class="preview-head">'
+            f'<div class="preview-title">{title}</div><span class="badge badge-done">Generated</span></div>'
+            f'<div class="preview-sub">{subtitle}</div>'
+            '<div class="preview-line"></div>'
+            f'<div class="preview-status"><span>Learning objectives</span><b>{objectives} mapped</b></div>'
+            f'<div class="preview-status" style="margin-top:11px;"><span>Course modules</span><b>{len(result.curriculum.modules)} modules</b></div>'
+            f'<div class="preview-status" style="margin-top:11px;"><span>Quality check</span>'
+            f'<b class="{"pass" if status == "PASS" else "fail"}">{status} · {result.validation.score:.0f}%</b></div>'
+            '<div class="next-step"><div class="next-label">NEXT STEP</div>'
+            '<div class="next-text">Review the course workspace below, then export the validated package.</div></div>'
+        )
+        top = '<div class="preview-top"><span>YOUR COURSE</span></div>'
     else:
-        title = "Your course preview"
-        subtitle = "Fill in the form to generate a structured learning path"
-        status, status_color = "Pending", "#8AA0BC"
-        badge = '<span class="badge">Ready to generate</span>'
-        next_text = "Generate lessons, assessments, answer keys and rubrics from the validated curriculum."
-        obj_text, mod_text = "—", "—"
+        body = '<div class="rotor">' + "".join(sample_slide(*c) for c in SAMPLE_COURSES) + "</div>"
+        top = ('<div class="preview-top"><span>AI COURSE PREVIEW</span>'
+               f'<span class="dots">{"<i></i>" * len(SAMPLE_COURSES)}</span></div>')
 
-    st.markdown(
-        '<div class="hero-wrap"><div class="preview">'
-        '<div class="preview-top">AI COURSE PREVIEW</div>'
-        '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">'
-        f'<div class="preview-title">{title}</div>{badge}</div>'
-        f'<div class="preview-sub">{subtitle}</div>'
-        '<div class="preview-line"></div>'
-        f'<div class="preview-status"><span>Learning objectives</span><b>{obj_text}</b></div>'
-        f'<div class="preview-status" style="margin-top:11px;"><span>Course modules</span><b>{mod_text}</b></div>'
-        f'<div class="preview-status" style="margin-top:11px;"><span>Quality check</span><b style="color:{status_color};">{status}</b></div>'
-        f'<div class="next-step"><div class="next-label">NEXT STEP</div><div class="next-text">{next_text}</div></div>'
-        '</div></div>',
-        unsafe_allow_html=True,
-    )
+    note = "" if result else '<div class="sample-note">Sample courses. Fill in the form to build your own.</div>'
+    st.markdown(f'<div class="hero-wrap"><div class="preview">{top}{body}{note}</div></div>', unsafe_allow_html=True)
 
 
 def render_footer():
@@ -564,7 +330,8 @@ if st.session_state.show_generator:
         with c2:
             difficulty = st.selectbox("Difficulty", ["Beginner", "Intermediate", "Advanced"], index=1 if sample else 0)
             goal = st.text_area("Learning goal", value="Build practical Python skills for biological sequence analysis." if sample else "", height=112)
-            mode = st.radio("Generation mode", ["Demo / Mock — no API key", "Gemini API"], horizontal=True)
+            mode = st.radio("Generation mode", ["Demo / Mock — no API key", "Gemini API"],
+                            index=1 if settings.gemini_configured else 0, horizontal=True)
             if settings.gemini_configured:
                 st.caption("Gemini API key detected. If Gemini is unavailable, demo output is used instead.")
             else:
