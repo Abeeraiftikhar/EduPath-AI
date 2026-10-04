@@ -1,6 +1,11 @@
-# EduPath-AI
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/brand/logo_full_dark.png">
+    <img src="assets/brand/logo_full.png" alt="EduPath-AI logo" width="220">
+  </picture>
+</p>
 
-## Autonomous Multi-Agent Course & Training Curriculum Generator
+<p align="center"><b>Autonomous Multi-Agent Course &amp; Training Curriculum Generator</b></p>
 
 EduPath-AI basically transforms a simple learning request into a structured, validated and downloadable course package using specialized agents.
 
@@ -115,8 +120,9 @@ download the ZIP. The full walkthrough is in [docs/DEMO_SCRIPT.md](docs/DEMO_SCR
 ```text
 EduPath-AI/
 ├── app.py                      # Streamlit app: nav, hero, wizard, progress, results
-├── ui/                         # HTML section builders (sections.py) + icon generator (make_icons.py)
+├── ui/                         # HTML section builders (sections.py), icon generator (make_icons.py), logo generator (make_logos.py)
 ├── assets/                     # theme.css, theme_dark.css, icons.css (generated), favicon.png
+│   └── brand/                  # Logo.png (source) + generated logo_full / logo_mark variants (light and dark)
 ├── agents/                     # curriculum, content, assessment, quality (+ base.py feedback prompt)
 ├── core/                       # schemas, orchestrator, providers, exporter, utils, config
 ├── tests/test_pipeline.py      # 47 tests: pipeline, quality checks, feedback loop, exports, Gemini handling, UI builders and wizard flow

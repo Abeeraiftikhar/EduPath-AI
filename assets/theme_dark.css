@@ -36,7 +36,6 @@
     background-attachment:fixed;
 }
 .display .grad, .h2 .grad { background:linear-gradient(90deg, #A5B4FF, #B9A8FF); -webkit-background-clip:text; background-clip:text; color:transparent; }
-.logo { box-shadow:0 6px 22px rgba(108,124,255,.35); }
 .preview, .report, .gen, .st-key-wizard, .course-head { backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
 .preview { background:linear-gradient(180deg, rgba(21,31,52,.92), rgba(16,24,42,.92)); }
 .node .orb { box-shadow:0 0 0 6px var(--bg), 0 0 28px rgba(108,124,255,.16); }

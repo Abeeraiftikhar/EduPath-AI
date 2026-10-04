@@ -1,3 +1,4 @@
+import base64
 import html
 import time
 from pathlib import Path
@@ -80,8 +81,17 @@ def load_css(name: str) -> str:
         return ""  # the app still works unstyled if an asset is missing
 
 
+def logo_uri(dark: bool) -> str:
+    """The brand mark as a data URI. Dark theme gets the lighter tint of the same blue for contrast."""
+    try:
+        data = (ASSETS / "brand" / ("logo_mark_dark.png" if dark else "logo_mark.png")).read_bytes()
+        return "url(data:image/png;base64," + base64.b64encode(data).decode() + ")"
+    except OSError:
+        return "none"  # no logo file: the wordmark text still shows
+
+
 def apply_theme():
-    css = load_css("icons.css") + load_css("theme.css")
+    css = f":root{{--logo-img:{logo_uri(st.session_state.dark)};}}" + load_css("icons.css") + load_css("theme.css")
     if st.session_state.dark:
         css += load_css("theme_dark.css")
     icon = "sun" if st.session_state.dark else "moon"   # shows the mode you would switch TO

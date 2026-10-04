@@ -97,10 +97,8 @@ div[data-testid="stLayoutWrapper"]:has(> .st-key-topnav) { position:sticky; top:
 }
 .st-key-topnav [data-testid="stHorizontalBlock"] { align-items:center; gap:.5rem; }
 .brand { display:flex; align-items:center; gap:11px; }
-.logo {
-    width:36px; height:36px; border-radius:11px; display:grid; place-items:center; color:#fff; font-size:18px;
-    background:linear-gradient(135deg, var(--primary), var(--primary-2)); box-shadow:0 6px 18px var(--glow);
-}
+.logo { display:block; width:50px; height:42px; flex:none; background:var(--logo-img) center/contain no-repeat; transition:transform .3s var(--ease); }
+.brand:hover .logo { transform:scale(1.06) rotate(-2deg); }
 .brand-name { font-family:var(--font-display); font-weight:600; font-size:19px; color:var(--text); letter-spacing:-.02em; }
 .st-key-topnav button { min-height:38px !important; }
 .st-key-topnav [class*="st-key-nav_"] button {

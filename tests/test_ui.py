@@ -115,3 +115,20 @@ def test_regenerate_and_new_course():
     assert at.session_state.result is not first and at.session_state.result.request == first.request
     click(at, "new_course")
     assert at.session_state.result is None and at.session_state.wiz_step == 1 and at.session_state.wiz["topic"] == ""
+
+
+def test_logo_assets_exist_and_have_sane_shape():
+    from pathlib import Path
+    from PIL import Image
+    brand = Path("assets/brand")
+    for name in ("Logo.png", "logo_full.png", "logo_full_dark.png", "logo_mark.png", "logo_mark_dark.png"):
+        img = Image.open(brand / name)
+        assert img.mode == "RGBA" and img.getchannel("A").getextrema()[0] == 0, name   # transparent background kept
+    mark = Image.open(brand / "logo_mark.png")
+    assert 1.0 < mark.width / mark.height < 2.0 and mark.height >= 100              # crisp enough for retina nav use
+    assert Image.open("assets/favicon.png").size == (128, 128)
+
+
+def test_brand_uses_logo_image_not_text_icon():
+    html = ui.brand()
+    assert 'class="logo"' in html and "ic-sparkles" not in html and "EduPath-AI" in html

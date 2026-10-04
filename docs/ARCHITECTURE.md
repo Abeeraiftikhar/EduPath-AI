@@ -75,3 +75,6 @@ the loop can be shown live.
   progress card, then results are cached with their export files.
 - **Motion:** CSS only. Scroll reveals use `animation-timeline: view()` (Chromium; other browsers simply show the
   content). Everything respects `prefers-reduced-motion`.
+- **Logo:** `assets/brand/Logo.png` is the single source. `python ui/make_logos.py` derives the tight-cropped mark and
+  full logo (plus lighter dark-theme tints, because the brand blue has too little contrast on navy) and the favicon. The
+  app embeds the right mark per theme as a data URI exposed as `--logo-img`; the README uses a `<picture>` element.

@@ -41,7 +41,7 @@ def ic(name: str) -> str:
 
 # ------------------------------------------------------------------ navigation
 def brand() -> str:
-    return '<div class="brand"><div class="logo">' + ic("sparkles") + '</div><div class="brand-name">EduPath-AI</div></div>'
+    return '<div class="brand"><span class="logo" role="img" aria-label="EduPath-AI logo"></span><div class="brand-name">EduPath-AI</div></div>'
 
 
 # ------------------------------------------------------------------------ hero
