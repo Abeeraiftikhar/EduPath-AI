@@ -1,7 +1,7 @@
 from core.schemas import (
     Curriculum, LessonPackage, AssessmentPackage, ValidationReport, ValidationCheck,
 )
-from core.utils import parse_weeks, mcq_answer_index
+from core.utils import parse_weeks, mcq_answer_index, uncovered_objectives
 
 
 class QualityAgent:
@@ -58,7 +58,7 @@ class QualityAgent:
         add("Assessments map to real learning objectives", not unmapped,
             f"Assessment(s) not mapped to a curriculum objective: {unmapped}.", "assessments")
 
-        uncovered = sorted(objectives - {i.learning_objective for i in items})
+        uncovered = uncovered_objectives(curriculum, items)
         add("Every learning objective is assessed", not uncovered,
             f"{len(uncovered)} objective(s) have no assessment, e.g. '{uncovered[0]}'." if uncovered else "",
             "assessments")

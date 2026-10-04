@@ -1,4 +1,4 @@
-# Future Steps — Making EduPath-AI Excellent
+﻿# Future Steps — Making EduPath-AI Excellent
 
 Work is tracked on the **`waleed-works`** branch. Each step below is marked ✅ Done (with a short explanation of what was built and verified) or 🔲 Remaining (manual actions that need the owner).
 
@@ -136,6 +136,24 @@ Run with `pip install -r requirements-dev.txt && pytest -q`.
 
 **Verified:** 35 tests pass (12 new: topic cleaning and validation, every audience × goal combination, sample profile options, objective snapping), plus real-browser checks of the form, scrolling and a live Gemini run.
 
+## ✅ Round 4 — Persistent quality FAIL fixed + dark-mode redesign
+**Why it failed (screenshot: "FAIL (90%)" after 3 attempts):** the only failing check was *"Every learning objective is assessed"*. Gemini returned 8 assessment items for 12 learning objectives, and regenerating the whole set simply repeated the same gap.
+**Fixes**
+- The assessment prompt now states the objective count and requires at least that many items.
+- **Targeted top-up:** if coverage is the only problem, the Assessment agent is asked for items for just the missing objectives and they are merged in, instead of regenerating everything (`AssessmentAgent.complete`, `CourseOrchestrator._fix_assessments`).
+- Tested with a stub LLM that always skips objectives: it passes after exactly one top-up call, with no full regeneration. Live Gemini runs (Python / Bioinformatics / Machine Learning) all passed first time.
+**Dark mode redesign** (`assets/theme_dark.css`): a "midnight slate" palette with an indigo accent. Layered surfaces (page → card → raised), soft off-white text, a faint accent glow in the page background, gradient logo and headline accent, and tinted success/danger states. Streamlit's own widgets were restyled as well: the washed-out "agents working" status box, input outlines, dropdown menus, radios, checkboxes, expanders, tabs, alerts and buttons now all share one accent.
+**Verified:** 36 tests pass, and real-browser dark screenshots of the home page, form, open dropdown, progress box, results, validation, assessments and export.
+
+## ✅ Round 4 — Persistent quality FAIL fixed + dark-mode redesign
+**Why it failed (screenshot: "FAIL (90%)" after 3 attempts):** the only failing check was *"Every learning objective is assessed"*. Gemini returned 8 assessment items for 12 learning objectives, and regenerating the whole set simply repeated the same gap.
+**Fixes**
+- The assessment prompt now states the objective count and requires at least that many items.
+- **Targeted top-up:** if coverage is the only problem, the Assessment agent is asked for items for just the missing objectives and they are merged in, instead of regenerating everything (`AssessmentAgent.complete`, `CourseOrchestrator._fix_assessments`).
+- Tested with a stub LLM that always skips objectives: it passes after exactly one top-up call, with no full regeneration. Live Gemini runs (Python / Bioinformatics / Machine Learning) all passed first time.
+**Dark mode redesign** (`assets/theme_dark.css`): a "midnight slate" palette with an indigo accent. Layered surfaces (page → card → raised), soft off-white text, a faint accent glow in the page background, gradient logo and headline accent, and tinted success/danger states. Streamlit's own widgets were restyled as well: the washed-out "agents working" status box, input outlines, dropdown menus, radios, checkboxes, expanders, tabs, alerts and buttons now all share one accent.
+**Verified:** 36 tests pass, and real-browser dark screenshots of the home page, form, open dropdown, progress box, results, validation, assessments and export.
+
 ---
 
 ## Out of scope (kept simple on purpose)
@@ -144,3 +162,4 @@ Accounts, databases, LMS integration, multi-LLM orchestration, analytics dashboa
 ## Known notes
 - Never commit `.env` (it holds the API key). On Streamlit Cloud, put `GEMINI_API_KEY` under App Settings → Secrets.
 - `st.components.v1.html` (used only for the cosmetic auto-scroll) is deprecated in recent Streamlit versions. It is wrapped in a try/except, so the app still works if it is removed; only the scroll would be lost.
+

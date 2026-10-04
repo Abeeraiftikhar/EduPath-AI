@@ -63,3 +63,9 @@ def snap_objectives(assessment_items, curriculum, cutoff: float = 0.6):
             if match:
                 item.learning_objective, fixed = match[0], fixed + 1
     return fixed
+
+
+def uncovered_objectives(curriculum, assessment_items):
+    """Learning objectives that no assessment item is mapped to (in curriculum order)."""
+    covered = {i.learning_objective for i in assessment_items}
+    return [o for m in curriculum.modules for o in m.learning_objectives if o not in covered]

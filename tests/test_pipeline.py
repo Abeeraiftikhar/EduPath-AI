@@ -236,3 +236,39 @@ def test_snap_objectives_repairs_paraphrased_mapping():
     assert assessments.items[0].learning_objective == original
     assessments.items[1].learning_objective = "Totally unrelated words"   # too different: left alone
     assert snap_objectives(assessments.items, curriculum) == 0
+
+
+# ---------------------------------------------- coverage top-up (Gemini gaps)
+class GappyLLM:
+    """Stub LLM: its first assessment draft skips every second objective, as a real model sometimes does.
+    A targeted request ('ONLY these learning objectives') returns just the missing items."""
+
+    def __init__(self):
+        self.mock, self.calls = MockProvider(), []
+        self.req = CourseRequest(topic="Python", audience="Undergraduate students", duration="4 Weeks",
+                                 difficulty="Beginner", learning_goal="Build practical, job-ready skills")
+
+    def generate_structured(self, prompt, schema):
+        self.calls.append("topup" if "ONLY for these learning objectives" in prompt else schema.__name__)
+        curriculum = self.mock.curriculum(self.req)
+        if schema.__name__ == "Curriculum":
+            return curriculum
+        if schema.__name__ == "LessonPackage":
+            return self.mock.lessons(self.req, curriculum)
+        full = self.mock.assessments(self.req, curriculum, None)
+        if "ONLY for these learning objectives" in prompt:
+            full.items = [i for i in full.items if i.learning_objective in prompt]
+        else:
+            full.items = [i for i in full.items if i.type != "quiz"]      # leaves objective B of each module unassessed
+        return full
+
+
+def test_missing_objective_coverage_is_fixed_by_targeted_topup():
+    llm = GappyLLM()
+    orch = CourseOrchestrator("mock")
+    for agent in (orch.curriculum_agent, orch.content_agent, orch.assessment_agent):
+        agent.provider = llm
+    result = orch.generate("Python", "Undergraduate students", "4 Weeks", "Beginner", "Build practical, job-ready skills")
+    assert result.validation.status == "PASS" and result.validation.attempts == 2
+    assert llm.calls.count("topup") == 1 and llm.calls.count("AssessmentPackage") == 1   # no full regeneration
+    assert any("no assessment" in i for i in result.validation.resolved_issues)

@@ -2,7 +2,7 @@ from core.schemas import CourseRequest, CoursePackage
 from core.llm_provider import GeminiProvider, ProviderError
 from core.mock_provider import MockProvider
 from core.config import settings
-from core.utils import snap_objectives
+from core.utils import snap_objectives, uncovered_objectives
 from agents.curriculum_agent import CurriculumAgent
 from agents.content_agent import ContentAgent
 from agents.assessment_agent import AssessmentAgent
@@ -21,6 +21,21 @@ class CourseOrchestrator:
         self.content_agent = ContentAgent(self.provider)
         self.assessment_agent = AssessmentAgent(self.provider)
         self.quality_agent = QualityAgent()
+
+    def _fix_assessments(self, request, curriculum, lessons, assessments, validation, feedback):
+        """If the only problem is missing objective coverage, ask for just the missing items and merge
+        them in. Regenerating the whole set tends to repeat the same gap."""
+        failed_names = {c.name for c in validation.checks if not c.passed and c.component == "assessments"}
+        missing = uncovered_objectives(curriculum, assessments.items)
+        if failed_names == {"Every learning objective is assessed"} and missing:
+            extra = self.assessment_agent.complete(request, curriculum, missing)
+            if extra is not None:
+                assessments.items.extend(extra.items)
+                snap_objectives(assessments.items, curriculum)
+                return assessments
+        assessments = self.assessment_agent.run(request, curriculum, lessons, feedback)
+        snap_objectives(assessments.items, curriculum)
+        return assessments
 
     def generate(self, topic, audience, duration, difficulty, learning_goal, on_step=None):
         """`on_step(agent_name, state, detail)` is called with state 'running' or 'done' for live progress."""
@@ -60,8 +75,7 @@ class CourseOrchestrator:
             if "lessons" in failed:
                 lessons = self.content_agent.run(request, curriculum, feedback)
             if "assessments" in failed:
-                assessments = self.assessment_agent.run(request, curriculum, lessons, feedback)
-                snap_objectives(assessments.items, curriculum)
+                assessments = self._fix_assessments(request, curriculum, lessons, assessments, validation, feedback)
             resolved += [i for i in feedback if i not in resolved]
             validation = self.quality_agent.run(curriculum, lessons, assessments, duration)
             step("Regeneration", "done", f"{validation.status} ({validation.score:.0f}%)")
