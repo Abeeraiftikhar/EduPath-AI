@@ -9,7 +9,7 @@
 
 EduPath-AI basically transforms a simple learning request into a structured, validated and downloadable course package using specialized agents.
 
-![Python](https://img.shields.io/badge/python-3.10%2B-blue) ![Streamlit]([https://img.shields.io/badge/UI-Streamlit-red](https://edupath-ai-pakangels.streamlit.app/)) ![License](https://img.shields.io/badge/license-see%20LICENSE-green)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue) ![Streamlit](https://edupath-ai-pakangels.streamlit.app/) ![License](https://img.shields.io/badge/license-see%20LICENSE-green)
 
 > **Live demo:** _add your Streamlit Community Cloud URL here after deploying_ · **Sample output:** [examples/Sample_Course_Package.zip](examples/Sample_Course_Package.zip)
 
