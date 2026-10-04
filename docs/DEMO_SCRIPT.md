@@ -24,4 +24,4 @@ Click **New course**, choose **1 Week** / **Advanced**: fewer modules and strong
 Download `Course_Package.zip` (or the PDF) and show the files. A ready-made copy is in `examples/`.
 
 ### Fallback
-If the network fails, use Demo / Mock mode. If the live app is down, run locally or show `examples/Sample_Course_Package.zip`.
+If the network fails, use Demo / Mock mode. If the live app (https://edupath-ai-pakangels.streamlit.app/) is down, run locally or show `examples/Sample_Course_Package.zip`.

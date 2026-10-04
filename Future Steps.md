@@ -2,7 +2,7 @@
 
 Work is tracked on the **`waleed-works`** branch. Each step below is marked ✅ Done (with a short explanation of what was built and verified) or 🔲 Remaining (manual actions that need the owner).
 
-**Progress: 9 of 10 steps fully done, plus the bonus round. Step 10 is done except for 3 manual items (deploy, screenshots, rehearsal). Gemini mode has now been tested live.**
+**Progress: 9 of 10 steps fully done, plus the bonus round. Step 10 is done except for 2 manual items (screenshots, rehearsal); the app is deployed. Gemini mode has now been tested live.**
 
 ## Status at a glance
 
@@ -17,7 +17,7 @@ Work is tracked on the **`waleed-works`** branch. Each step below is marked ✅ 
 | 7 | Upgraded results workspace | ✅ Done |
 | 8 | Clean repo and dependencies | ✅ Done |
 | 9 | Expanded tests | ✅ Done (23 passing) |
-| 10 | Docs, deployment, demo polish | 🟡 Docs and sample done; 3 manual items left |
+| 10 | Docs, deployment, demo polish | 🟡 Docs, sample and deployment done; 2 manual items left |
 
 ---
 
@@ -100,7 +100,7 @@ Run with `pip install -r requirements-dev.txt && pytest -q`.
 - `examples/Sample_Course_Package.zip` is a pre-generated fallback for the demo (`.gitignore` exception added).
 
 **Remaining (manual, needs the owner)**
-- 🔲 Deploy to Streamlit Community Cloud and paste the live URL into the README placeholder.
+- ✅ Deployed to Streamlit Community Cloud: https://edupath-ai-pakangels.streamlit.app/ (linked from the README).
 - 🔲 Capture 2–3 screenshots or a short GIF (landing → generate → results → export) and add them to the README.
 - 🔲 Rehearse `docs/DEMO_SCRIPT.md` once end-to-end on the deployed build, (Gemini output was already confirmed live during the bonus round.)
 
